@@ -19,7 +19,7 @@ class InternetExchange(Printable, Configurable):
     __rs: Node
     __name: str
 
-    def __init__(self, id: int, prefix: str = "auto", aac: AddressAssignmentConstraint = None):
+    def __init__(self, id: int, prefix: str = "auto", aac: AddressAssignmentConstraint = None, rsAddress: str = "auto"):
         """!
         @brief InternetExchange constructor.
 
@@ -37,7 +37,7 @@ class InternetExchange(Printable, Configurable):
         self.__rs = Node(self.__name, NodeRole.RouteServer, self.__id)
         self.__net = Network(self.__name, NetworkType.InternetExchange, network, aac, False)
 
-        self.__rs.joinNetwork(self.__name)
+        self.__rs.joinNetwork(self.__name, rsAddress)
 
     def configure(self, emulator: Emulator):
         reg = emulator.getRegistry()
