@@ -1,18 +1,7 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 
-from seedemu.layers import Base, Routing, Ebgp, Ibgp, Ospf, PeerRelationship, Dnssec
-from seedemu.services import WebService, DomainNameService, DomainNameCachingService
-from seedemu.services import CymruIpOriginService, ReverseDomainNameService, BgpLookingGlassService
-from seedemu.compiler import Docker, Graphviz
-from seedemu.hooks import ResolvConfHook
-from seedemu.core import Emulator, Service, Binding, Filter
-from seedemu.layers import Router
-from seedemu.raps import OpenVpnRemoteAccessProvider
-from seedemu.utilities import Makers
-
-from typing import List, Tuple, Dict
-
+from seedemu import *
 
 ###############################################################################
 emu     = Emulator()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 
-from seedemu.core import Emulator, Binding, Filter, Action
+from seedemu.core import Emulator
 from seedemu.compiler import Docker
 from seedemu.layers import Base, Ebgp, PeerRelationship
 
@@ -21,7 +21,6 @@ as199.createHost('host-0').joinNetwork('net0')
 as199.createRouter('router0').joinNetwork('net0').joinNetwork('ix105')
 ebgp.addPrivatePeerings(105, [2],  [199], PeerRelationship.Provider)
 
-
-###############################################
+# Render and compiler
 emu.render()
 emu.compile(Docker(), './output')

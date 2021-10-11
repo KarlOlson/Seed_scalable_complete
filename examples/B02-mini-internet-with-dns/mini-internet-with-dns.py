@@ -3,9 +3,8 @@
 
 from seedemu.core import Emulator, Binding, Filter, Action
 from seedemu.mergers import DEFAULT_MERGERS
-from seedemu.hooks import ResolvConfHook
 from seedemu.compiler import Docker
-from seedemu.services import DomainNameService, DomainNameCachingService
+from seedemu.services import DomainNameCachingService
 from seedemu.layers import Base
 
 emuA = Emulator()
@@ -22,19 +21,17 @@ emu = emuA.merge(emuB, DEFAULT_MERGERS)
 # Action.FIRST will look for the first acceptable node that satisfies the filter rule.
 # There are several other filters types that are not shown in this example.
 
-emu.addBinding(Binding('a-root-server', filter=Filter(asn=171), action=Action.FIRST))
-emu.addBinding(Binding('b-root-server', filter=Filter(asn=150), action=Action.FIRST))
-emu.addBinding(Binding('a-com-server', filter=Filter(asn=151), action=Action.FIRST))
-emu.addBinding(Binding('b-com-server', filter=Filter(asn=152), action=Action.FIRST))
-emu.addBinding(Binding('a-net-server', filter=Filter(asn=152), action=Action.FIRST))
-emu.addBinding(Binding('a-edu-server', filter=Filter(asn=153), action=Action.FIRST))
-emu.addBinding(Binding('a-cn-server', filter=Filter(asn=154), action=Action.FIRST))
-emu.addBinding(Binding('b-cn-server', filter=Filter(asn=160), action=Action.FIRST))
-emu.addBinding(Binding('ns-twitter-com', filter=Filter(asn=161), action=Action.FIRST))
-emu.addBinding(Binding('ns-google-com', filter=Filter(asn=162), action=Action.FIRST))
-emu.addBinding(Binding('ns-example-net', filter=Filter(asn=163), action=Action.FIRST))
-emu.addBinding(Binding('ns-syr-edu', filter=Filter(asn=164), action=Action.FIRST))
-emu.addBinding(Binding('ns-weibo-cn', filter=Filter(asn=170), action=Action.FIRST))
+# bind root servers randomly in AS171
+emu.addBinding(Binding('.*-root-server', filter=Filter(asn=171)))
+
+# bind com servers randomly in AS151, net on 152, edu on 153, and cn on 154
+emu.addBinding(Binding('.*-com-server', filter=Filter(asn=151)))
+emu.addBinding(Binding('.*-net-server', filter=Filter(asn=152)))
+emu.addBinding(Binding('.*-edu-server', filter=Filter(asn=153)))
+emu.addBinding(Binding('.*-cn-server', filter=Filter(asn=154)))
+
+# for the domain servers, bind them randomly in any AS
+emu.addBinding(Binding('ns-.*'))
 
 #####################################################################################
 # Create two local DNS servers (virtual node).
@@ -44,17 +41,14 @@ ldns.install('global-dns-2')
 
 # Create two new host in AS-152 and AS-153, use them to host the local DNS server.
 # We can also host it on an existing node.
-base: Base = emu.getLayer('Base')
-as152 = base.getAutonomousSystem(152)
-as152.createHost('local-dns-1').joinNetwork('net0', address = '10.152.0.53')
-as153 = base.getAutonomousSystem(153)
-as153.createHost('local-dns-2').joinNetwork('net0', address = '10.153.0.53')
-emu.addBinding(Binding('global-dns-1', filter = Filter(asn=152, nodeName="local-dns-1")))
-emu.addBinding(Binding('global-dns-2', filter = Filter(asn=153, nodeName="local-dns-2")))
+emu.addBinding(Binding('global-dns-1', filter = Filter(ip = '10.152.0.53')), action = Action.NEW)
+emu.addBinding(Binding('global-dns-2', filter = Filter(ip = '10.153.0.53')), action = Action.NEW)
 
 # Add 10.152.0.53 as the local DNS server for AS-160 and AS-170
 # Add 10.153.0.53 as the local DNS server for all the other nodes
 # We can also set this for individual nodes
+base: Base = emu.getLayer('Base')
+
 base.getAutonomousSystem(160).setNameServers(['10.152.0.53'])
 base.getAutonomousSystem(170).setNameServers(['10.152.0.53'])
 base.setNameServers(['10.153.0.53'])
@@ -69,26 +63,6 @@ emu.dump('base_with_dns.bin')
 ###############################################
 # Render the emulation and further customization
 emu.render()
-
-# After the rendering, we can now find the physical node for 
-# a given virtual node, and further customize the physical node.
-emu.getBindingFor('a-root-server').setDisplayName('A-Root')
-emu.getBindingFor('b-root-server').setDisplayName('B-Root')
-emu.getBindingFor('a-com-server').setDisplayName('A-COM')
-emu.getBindingFor('b-com-server').setDisplayName('B-COM')
-emu.getBindingFor('a-net-server').setDisplayName('NET')
-emu.getBindingFor('a-edu-server').setDisplayName('EDU')
-emu.getBindingFor('a-cn-server').setDisplayName('A-CN')
-emu.getBindingFor('b-cn-server').setDisplayName('B-CN')
-emu.getBindingFor('ns-twitter-com').setDisplayName('Twitter')
-emu.getBindingFor('ns-google-com').setDisplayName('Google')
-emu.getBindingFor('ns-example-net').setDisplayName('Example')
-emu.getBindingFor('ns-syr-edu').setDisplayName('Syracuse')
-emu.getBindingFor('ns-weibo-cn').setDisplayName('微博')
-
-emu.getBindingFor('global-dns-1').setDisplayName('Global DNS-1')
-emu.getBindingFor('global-dns-2').setDisplayName('Global DNS-2')
-
 
 ###############################################
 # Render the emulation
