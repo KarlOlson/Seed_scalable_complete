@@ -34,7 +34,7 @@ def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet:
     emu.addLayer(Routing())
     emu.addLayer(Ibgp())
     emu.addLayer(Ospf())
-    
+
     if hostService != None:
         emu.addLayer(hostService)
 
@@ -110,7 +110,7 @@ def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet:
             ixMembers[ix].add(lastRouter.getAsn())
             lastRouter.joinNetwork(ixNetName, str(next(ixHosts)))
 
-        for i in range(0, asEachIx):
+        for i in range(1 if lastRouter != None else 0, asEachIx):
             router = asRouters[asnPtr][0]
             ixMembers[ix].add(router.getAsn())
             router.joinNetwork(ixNetName, str(next(ixHosts)))
