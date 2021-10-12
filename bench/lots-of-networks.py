@@ -145,10 +145,10 @@ def main():
     parser.add_argument('--ixs', help = 'Number of ASes in each IX.', required = True)
     parser.add_argument('--routers', help = 'Number of routers in each AS.', required = True)
     parser.add_argument('--hosts', help = 'Number of hosts in each AS.', required = True)
-    parser.add_argument('--web', help = 'Install web server on all hosts.', action='store_true')
-    parser.add_argument('--ping', help = 'Have all hosts randomly ping some router.', action='store_true')
+    parser.add_argument('--web', help = 'Install web server on all hosts.', action = 'store_true')
+    parser.add_argument('--ping', help = 'Have all hosts randomly ping some router.', action = 'store_true')
     parser.add_argument('--outdir', help = 'Output directory.', required = True)
-    parser.add_argument('--yes', help = 'Do not prompt for confirmation.', required = True)
+    parser.add_argument('--yes', help = 'Do not prompt for confirmation.', action = 'store_true')
 
     args = parser.parse_args()
 
