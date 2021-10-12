@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from seedemu.core.enums import NodeRole
 from seedemu import *
 from typing import List, Dict, Set
 from ipaddress import IPv4Network
 from math import ceil
+from random import choice
 
 import argparse
 
@@ -34,12 +34,15 @@ def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet:
     emu.addLayer(Routing())
     emu.addLayer(Ibgp())
     emu.addLayer(Ospf())
+    emu.addLayer(hostService)
 
     base = Base()
     ebgp = Ebgp()
 
     ases: Dict[int, AutonomousSystem] = {}
     asRouters: Dict[int, List[Router]] = {}
+    hosts: List[Node] = []
+    routerAddresses: List[str] = []
 
     # create ASes
     for i in range(0, asCount):
@@ -59,6 +62,7 @@ def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet:
 
             router = asObject.createRouter('router{}'.format(j))
             router.joinNetwork(netname)
+            routerAddresses.append(str(next(prefix.hosts())))
 
             asRouters[asn].append(router)
 
@@ -73,10 +77,7 @@ def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet:
                     hostService.install(vnode)
                     emu.addBinding(Binding(vnode, action = Action.FIRST, filter = Filter(asn = asn, nodeName = hostname)))
 
-                for cmd in hostCommands:
-                    host.appendStartCommand(cmd.format(
-                        randomHostIp = 'todo'
-                    ), True)
+                hosts.append(host)
 
                 for file in hostFiles:
                     path, body = file.get()
@@ -123,6 +124,13 @@ def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet:
                 if a!= b and (ix, a, b) not in peers and (ix, b, a) not in peers:
                     ebgp.addPrivatePeering(ix, a, b, PeerRelationship.Unfiltered)
 
+    # host commands
+    for host in hosts:
+        for cmd in hostCommands:
+            host.appendStartCommand(cmd.format(
+                randomRouterIp = choice(routerAddresses)
+            ), True)
+
     emu.addLayer(base)
     emu.addLayer(ebgp)
 
@@ -135,12 +143,12 @@ def main():
     parser.add_argument('--routers', help = 'Number of routers in each AS.', required = True)
     parser.add_argument('--hosts', help = 'Number of hosts in each AS.', required = True)
     parser.add_argument('--web', help = 'Install web server on all hosts.', action='store_true')
-    parser.add_argument('--ping', help = 'Have all hosts randomly ping other host.', action='store_true')
+    parser.add_argument('--ping', help = 'Have all hosts randomly ping some router.', action='store_true')
     parser.add_argument('--outdir', help = 'Output directory.', required = True)
 
     args = parser.parse_args()
 
-    emu = createEmulation(int(args.ases), int(args.ixs), int(args.routers), int(args.hosts), WebService() if args.web else None, ['ping {randomHostIp}'] if args.ping else [], [])
+    emu = createEmulation(int(args.ases), int(args.ixs), int(args.routers), int(args.hosts), WebService() if args.web else None, ['{{ while true; do ping {randomRouterIp}; done }}'] if args.ping else [], [])
     
     emu.render()
     emu.compile(Docker(selfManagedNetwork = True), args.outdir)
