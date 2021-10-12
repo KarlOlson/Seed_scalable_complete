@@ -8,7 +8,7 @@ from random import choice
 
 import argparse
 
-def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet: int, hostService: Service, hostCommands: List[str], hostFiles: List[File]) -> Emulator:
+def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet: int, hostService: Service, hostCommands: List[str], hostFiles: List[File], yes: bool) -> Emulator:
     asNetworkPool = IPv4Network('16.0.0.0/4').subnets(new_prefix = 16)
     linkNetworkPool = IPv4Network('32.0.0.0/4').subnets(new_prefix = 24)
     ixNetworkPool = IPv4Network('100.0.0.0/13').subnets(new_prefix = 24)
@@ -21,7 +21,8 @@ def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet:
     print('Total nodes: {} ({} routers, {} hosts)'.format(rtrCount + hostCount, rtrCount, hostCount))
     print('Total nets: {}'.format(netCount))
 
-    input('Press [Enter] to continue, or ^C to exit ')
+    if not yes:
+        input('Press [Enter] to continue, or ^C to exit ')
 
     aac = AddressAssignmentConstraint(hostStart = 2, hostEnd = 255, hostStep = 1, routerStart = 1, routerEnd = 2, routerStep = 0)
 
@@ -147,10 +148,11 @@ def main():
     parser.add_argument('--web', help = 'Install web server on all hosts.', action='store_true')
     parser.add_argument('--ping', help = 'Have all hosts randomly ping some router.', action='store_true')
     parser.add_argument('--outdir', help = 'Output directory.', required = True)
+    parser.add_argument('--yes', help = 'Do not prompt for confirmation.', required = True)
 
     args = parser.parse_args()
 
-    emu = createEmulation(int(args.ases), int(args.ixs), int(args.routers), int(args.hosts), WebService() if args.web else None, ['{{ while true; do ping {randomRouterIp}; done }}'] if args.ping else [], [])
+    emu = createEmulation(int(args.ases), int(args.ixs), int(args.routers), int(args.hosts), WebService() if args.web else None, ['{{ while true; do ping {randomRouterIp}; done }}'] if args.ping else [], [], args.yes)
     
     emu.render()
     emu.compile(Docker(selfManagedNetwork = True), args.outdir)
