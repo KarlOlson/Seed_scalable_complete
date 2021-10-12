@@ -1,20 +1,34 @@
+#!/usr/bin/env python3
+
+from seedemu.core.enums import NodeRole
 from seedemu import *
-from typing import List, Dict
+from typing import List, Dict, Set
 from ipaddress import IPv4Network
 from math import ceil
 
-def createEmulation(asCount: int, asEachIx: int, netEachAs: int, hostEachNet: int, hostService: Service, hostCommands: List[str], hostFiles: List[File]) -> Emulator:
+import argparse
+
+def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet: int, hostService: Service, hostCommands: List[str], hostFiles: List[File]) -> Emulator:
     asNetworkPool = IPv4Network('16.0.0.0/4').subnets(new_prefix = 16)
     linkNetworkPool = IPv4Network('32.0.0.0/4').subnets(new_prefix = 24)
     ixNetworkPool = IPv4Network('100.0.0.0/13').subnets(new_prefix = 24)
     ixCount = ceil(asCount / asEachIx)
+
+    rtrCount = asCount * routerEachAs
+    hostCount = asCount * routerEachAs * hostEachNet + ixCount
+    netCount = asCount * (routerEachAs + routerEachAs - 1) + ixCount
+
+    print('Total nodes: {} ({} routers, {} hosts)'.format(rtrCount + hostCount, rtrCount, hostCount))
+    print('Total nets: {}'.format(netCount))
+
+    input('Press [Enter] to continue, or ^C to exit ')
 
     aac = AddressAssignmentConstraint(hostStart = 2, hostEnd = 255, hostStep = 1, routerStart = 1, routerEnd = 2, routerStep = 0)
 
     assert asCount <= 4096, 'too many ASes.'
     assert ixCount <= 2048, 'too many IXs.'
     assert hostEachNet <= 253, 'too many hosts.'
-    assert netEachAs <= 256, 'too many local nets.'
+    assert routerEachAs <= 256, 'too many routers.'
 
     emu = Emulator()
     emu.addLayer(Routing())
@@ -24,7 +38,7 @@ def createEmulation(asCount: int, asEachIx: int, netEachAs: int, hostEachNet: in
     base = Base()
     ebgp = Ebgp()
 
-    ases: Dict[int, AutonomousSystem]
+    ases: Dict[int, AutonomousSystem] = {}
     asRouters: Dict[int, List[Router]] = {}
 
     # create ASes
@@ -38,7 +52,7 @@ def createEmulation(asCount: int, asEachIx: int, netEachAs: int, hostEachNet: in
         localNetPool = next(asNetworkPool).subnets(new_prefix = 24)
 
         # create host networks
-        for j in range(0, netEachAs):
+        for j in range(0, routerEachAs):
             prefix = next(localNetPool)
             netname = 'net{}'.format(j)
             asObject.createNetwork(netname, str(prefix), aac = aac)
@@ -51,17 +65,18 @@ def createEmulation(asCount: int, asEachIx: int, netEachAs: int, hostEachNet: in
             # create hosts
             for k in range(0, hostEachNet):
                 hostname = 'host{}_{}'.format(j, k)
-                host = asObject.createRouter(hostname)
+                host = asObject.createHost(hostname)
                 host.joinNetwork(netname)
 
-                vnode = 'as{}_{}'.format(asn, hostname)
-                hostService.install(vnode)
-                emu.addBinding(Binding(vnode, action = Action.FIRST, filter = Filter(asn = asn, nodeName = hostname)))
+                if hostService != None:
+                    vnode = 'as{}_{}'.format(asn, hostname)
+                    hostService.install(vnode)
+                    emu.addBinding(Binding(vnode, action = Action.FIRST, filter = Filter(asn = asn, nodeName = hostname)))
 
                 for cmd in hostCommands:
                     host.appendStartCommand(cmd.format(
                         randomHostIp = 'todo'
-                    ))
+                    ), True)
 
                 for file in hostFiles:
                     path, body = file.get()
@@ -79,21 +94,56 @@ def createEmulation(asCount: int, asEachIx: int, netEachAs: int, hostEachNet: in
     lastRouter = None
     asnPtr = 5000
 
+    ixMembers: Dict[int, Set[int]] = {}
+
     # create and join exchanges
     for ix in range(1, ixCount + 1):
         ixPrefix = next(ixNetworkPool)
         ixHosts = ixPrefix.hosts()
         ixNetName = base.createInternetExchange(ix, str(ixPrefix), rsAddress = str(next(ixHosts))).getPeeringLan().getName()
+        ixMembers[ix] = set()
 
         if lastRouter != None:
+            ixMembers[ix].add(lastRouter.getAsn())
             lastRouter.joinNetwork(ixNetName, str(next(ixHosts)))
 
         for i in range(0, asEachIx):
             router = asRouters[asnPtr][0]
+            ixMembers[ix].add(router.getAsn())
             router.joinNetwork(ixNetName, str(next(ixHosts)))
 
             asnPtr += 1
             lastRouter = router
 
+    # peerings
+    for ix, members in ixMembers.items():
+        for a in members:
+            for b in members:
+                peers = ebgp.getPrivatePeerings().keys()
+                if a!= b and (ix, a, b) not in peers and (ix, b, a) not in peers:
+                    ebgp.addPrivatePeering(ix, a, b, PeerRelationship.Unfiltered)
+
+    emu.addLayer(base)
+    emu.addLayer(ebgp)
 
     return emu
+
+def main():
+    parser = argparse.ArgumentParser(description='Make an emulation with lots of networks.')
+    parser.add_argument('--ases', help = 'Number of ASes to generate.', required = True)
+    parser.add_argument('--ixs', help = 'Number of ASes in each IX.', required = True)
+    parser.add_argument('--routers', help = 'Number of routers in each AS.', required = True)
+    parser.add_argument('--hosts', help = 'Number of hosts in each AS.', required = True)
+    parser.add_argument('--web', help = 'Install web server on all hosts.', action='store_true')
+    parser.add_argument('--ping', help = 'Have all hosts randomly ping other host.', action='store_true')
+    parser.add_argument('--outdir', help = 'Output directory.', required = True)
+
+    args = parser.parse_args()
+
+    emu = createEmulation(int(args.ases), int(args.ixs), int(args.routers), int(args.hosts), WebService() if args.web else None, ['ping {randomHostIp}'] if args.ping else [], [])
+    
+    emu.render()
+    emu.compile(Docker(selfManagedNetwork = True), args.outdir)
+
+if __name__ == '__main__':
+    main()
