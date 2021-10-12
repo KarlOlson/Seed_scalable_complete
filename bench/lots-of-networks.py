@@ -34,7 +34,9 @@ def createEmulation(asCount: int, asEachIx: int, routerEachAs: int, hostEachNet:
     emu.addLayer(Routing())
     emu.addLayer(Ibgp())
     emu.addLayer(Ospf())
-    emu.addLayer(hostService)
+    
+    if hostService != None:
+        emu.addLayer(hostService)
 
     base = Base()
     ebgp = Ebgp()
