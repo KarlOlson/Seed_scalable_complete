@@ -7,7 +7,7 @@ results="`pwd`/results"
 
 [ ! -d "$results" ] && mkdir "$results"
 
-for ((i=10; i<=1000; i+=10)); do {
+for ((i=${RESUME:-10}; i<=1000; i+=10)); do {
     rm -rf out
 
     echo "generating emulation..."
@@ -16,9 +16,16 @@ for ((i=10; i<=1000; i+=10)); do {
     [ ! -d "$this_results" ] && mkdir "$this_results"
     pushd out
 
-    echo "starting emulation..."
+    echo "buliding emulation..."
     docker-compose build
-    docker-compose up -d
+    # docker-compose up -d # bugged? stuck forever at "compose.parallel.feed_queue: Pending: set()"...
+    # start one by one instead...
+    echo "start emulation..."
+    for node in *; do {
+        [ "$node" = "docker-compose.yml" ] && continue
+        [ "$node" = "dummies" ] && continue
+        docker-compose up -d "$node"
+    }; done
 
     echo "waiting 60s for ospf/bgp, etc..."
     sleep 60 # wait for ospf, bgp, etc.
