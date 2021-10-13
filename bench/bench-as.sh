@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SAMPLE_COUNT='100'
+
 set -e
 
 cd "`dirname "$0"`"
@@ -8,7 +10,7 @@ results="`pwd`/results"
 [ ! -d "$results" ] && mkdir "$results"
 
 function collect {
-    for j in {1..100}; do {
+    for j in `seq 1 $SAMPLE_COUNT`; do {
         now="`date +%s`"
         echo "[$now] snapshotting cpu/mem info..."
         cat /proc/stat > "$this_results/stat-$now.txt"
@@ -41,13 +43,7 @@ for ((i=${RESUME:-10}; i<=1000; i+=10)); do {
 
     echo "waiting 60s for ospf/bgp, etc..."
     sleep 60 # wait for ospf, bgp, etc.
-    for j in {1..100}; do {
-        now="`date +%s`"
-        echo "[$now] snapshotting cpu/mem info..."
-        cat /proc/stat > "$this_results/stat-$now.txt"
-        cat /proc/meminfo > "$this_results/meminfo-$now.txt"
-        sleep 1
-    }; done
+    collect
 
     docker-compose down
     popd
