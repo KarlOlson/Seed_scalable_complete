@@ -19,13 +19,9 @@ for ((i=${RESUME:-10}; i<=1000; i+=10)); do {
     echo "buliding emulation..."
     docker-compose build
     # docker-compose up -d # bugged? stuck forever at "compose.parallel.feed_queue: Pending: set()"...
-    # start one by one instead...
+    # start only 10 at a time to prevent hangs
     echo "start emulation..."
-    for node in *; do {
-        [ "$node" = "docker-compose.yml" ] && continue
-        [ "$node" = "dummies" ] && continue
-        docker-compose up -d "$node"
-    }; done
+    ls | grep -Ev '.yml$|^dummies$' | xargs -n10 -exec docker-compose up -d
 
     echo "waiting 60s for ospf/bgp, etc..."
     sleep 60 # wait for ospf, bgp, etc.
