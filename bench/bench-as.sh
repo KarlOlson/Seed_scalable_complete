@@ -7,6 +7,22 @@ results="`pwd`/results"
 
 [ ! -d "$results" ] && mkdir "$results"
 
+function collect {
+    for j in {1..100}; do {
+        now="`date +%s`"
+        echo "[$now] snapshotting cpu/mem info..."
+        cat /proc/stat > "$this_results/stat-$now.txt"
+        cat /proc/meminfo > "$this_results/meminfo-$now.txt"
+        sleep 1
+    }; done
+}
+
+this_results="$results/bench-0-ases"
+[ ! -d "$this_results" ] && {
+    mkdir "$this_results"
+    collect
+}
+
 for ((i=${RESUME:-10}; i<=1000; i+=10)); do {
     rm -rf out
 
