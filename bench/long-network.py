@@ -14,6 +14,8 @@ while ! ping -t255 -c10 {remote}; do sleep 1; done # wait for b to go online and
 ping -c1000 -i.01 {remote} > /ping.log
 while ! iperf3 -c {remote} -t 60 > /iperf-tx.txt; do sleep 1; done
 while ! iperf3 -Rc {remote} -t 60 > /iperf-rx.txt; do sleep 1; done
+
+touch /done
 '''
 
 def createEmulation(asCount: int, chainLength: int) -> Emulator:
