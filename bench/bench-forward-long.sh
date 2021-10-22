@@ -30,10 +30,12 @@ for ((i=${RESUME:-10}; i<=250; i+=10)); do {
     for id in $host_ids; do {
         while ! docker exec $id ls /done; do {
             echo "waiting for $id to finish tests..."
-            docker cp "$id:/ping.log" "$this_results/$id-ping.log"
-            docker cp "$id:/iperf-tx.txt" "$this_results/$id-iperf-tx.txt"
-            docker cp "$id:/iperf-rx.txt" "$this_results/$id-iperf-rx.txt"
         }; done
+
+        echo "collecting results from $id..."
+        docker cp "$id:/ping.log" "$this_results/$id-ping.log"
+        docker cp "$id:/iperf-tx.txt" "$this_results/$id-iperf-tx.txt"
+        docker cp "$id:/iperf-rx.txt" "$this_results/$id-iperf-rx.txt"
     }; done
 
     docker-compose down
