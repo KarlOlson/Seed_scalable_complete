@@ -23,6 +23,17 @@ including Blockchain, Botnet, and many other useful elements of the Internet.
 -  [Contributing](#contributing)
 -  [License](#license)
 
+##Changes to base SEED Simulator
+
+Note this is currently deployed in the base SEED environment only and not converted to the cloudlab deployment yet. You should be able to deploy 60-ish nodes on a laptop that has dedicated 8GB of RAM to the environment. 
+
+1. Edited `docker.py` compiler lines `832-837` to add ganache configuration to `ix100`. `ix100` is the base internet exchange and host for the blockchain. Ganache is listening on `10.100.0.100:8545` on this device.
+2. Edited `docker.py` compiler lines `851-860` to add base image configuration to each docker device in the network. This includes all software and packages necessary to run blockchain, smart contract and proxy actions.
+3. Added `.env` file of 200 pre-made blockchain accounts representing ASNs 0-199 to https://github.com/KarlOlson/bgp_smart_contracts.git in the `/src` directory. This file is used to comply with Greg's account lookup procedures for the smart contracts.
+4. Added `accounts.txt` file to `/src` directory to have easily parsable file of accounts. This contains same info as `.env` file, but is space separated.
+5. Added `solc_ver_install.py` file to `/src` to pre-install compatability requirements for greg's smart contract. This is installed during docker build now. I did not delete the original from the `compile.py` in order to allow compatability with internet connected systems and completeness of programs. Python will detect installed and skip this in the `compile.py` file.
+6. When running `deploy.py` the contract address generated is deterministic and is pre-loaded into the `.env` file. No editing necessary.
+7. Added `account_script.py` to `/src`. Running this on `ix100` will deploy the specified ASNs and prefix's to the smart contract. See Account Deployment section for more detail on operation.
 
 ## Getting Started
 
