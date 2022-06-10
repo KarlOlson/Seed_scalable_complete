@@ -132,7 +132,7 @@ DockerCompilerFileTemplates['compose_label_meta'] = """\
 
 DockerCompilerFileTemplates['compose_ports'] = """\
         ports:
-{portList}
+{portList}:
 """
 
 DockerCompilerFileTemplates['compose_port'] = """\
@@ -178,6 +178,7 @@ DockerCompilerFileTemplates['seedemu_client'] = """\
             - /var/run/docker.sock:/var/run/docker.sock
         ports:
             - {clientPort}:8080/tcp
+           
 """
 
 DockerCompilerFileTemplates['seedemu-eth-client'] = """\
@@ -200,6 +201,8 @@ DockerCompilerFileTemplates['local_image'] = """\
         build:
             context: {dirName}
         image: {imageName}
+        ports:
+            - {ethclientPort}:3000/tcp
 """
 
 class DockerImage(object):
@@ -814,6 +817,7 @@ class Docker(Compiler):
             for softList in softLists:
                 dockerfile += 'RUN apt-get update && apt-get install -y --no-install-recommends {}\n'.format(' '.join(sorted(softList)))
 
+	
         dockerfile += 'RUN curl -L https://grml.org/zsh/zshrc > /root/.zshrc\n'
         dockerfile = 'FROM {}\n'.format(md5(image.getName().encode('utf-8')).hexdigest()) + dockerfile
         self._used_images.add(image.getName())
@@ -825,6 +829,12 @@ class Docker(Compiler):
         if self.__self_managed_network:
             start_commands += 'chmod +x /replace_address.sh\n'
             start_commands += '/replace_address.sh\n'
+            if node.getName() == "ix100":
+                start_commands += 'ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache\n'
+                start_commands += 'python3 /bgp_smart_contracts/src/compile.py\n'
+                start_commands += 'python3 /blockchain_code/src/deploy.py ACCOUNT0\n'
+            else:
+                start_commands += 'python3 /blockchain_code/src/proxy.py\n'
             dockerfile += self._addFile('/replace_address.sh', DockerCompilerFileTemplates['replace_address_script'])
             dockerfile += self._addFile('/dummy_addr_map.txt', dummy_addr_map)
             dockerfile += self._addFile('/root/.zshrc.pre', DockerCompilerFileTemplates['zshrc_pre'])
@@ -838,10 +848,24 @@ class Docker(Compiler):
 
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
+        dockerfile += 'RUN apt-get install -y npm build-essential python3 python3-pip python-dev libnetfilter-queue-dev nodejs git\n'
+        dockerfile+= 'RUN pip3 install py-solc-x web3 python-dotenv scapy\n'
+        dockerfile+= 'RUN npm update -g\n'
+        dockerfile+= 'RUN npm install -g ganache\n'
+        dockerfile+= 'RUN npm install -g npm@8.5.3\n'
+        dockerfile+= 'RUN pip3 install --upgrade pip\n'
+        dockerfile+= 'RUN pip3 install eth-brownie Flask scapy flask-restful\n'
+        dockerfile+= 'RUN pip3 install NetfilterQueue eth-utils\n'
+        dockerfile+= 'RUN git clone https://github.com/KarlOlson/bgp_smart_contracts.git\n'
+        dockerfile+= 'RUN python3 /bgp_smart_contracts/src/solc_ver_install.py\n'
 
         dockerfile += 'RUN chmod +x /start.sh\n'
         dockerfile += 'RUN chmod +x /seedemu_sniffer\n'
         dockerfile += 'RUN chmod +x /seedemu_worker\n'
+#        if node.getName() == "ix100":
+#            dockerfile += 'RUN ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache\n'
+#            dockerfile += 'RUN python3 /bgp_smart_contracts/src/compile.py\n'
+#            dockerfile += 'RUN python3 /blockchain_code/src/deploy.py ACCOUNT0\n'
 
         for file in node.getFiles():
             (path, content) = file.get()
