@@ -54,6 +54,9 @@ To get started with the emulator, install docker, docker-compose, and python3. T
 2. I have not automated the deployment of the blockchain configuration into the docker build script yet...trying to determine if that is the best approach or if a little bit of automated manual effort is better.
 3. The proxy is not autoloaded currently. When I manually load it goes into listening but does not seem to capture any traffic or begin chain validation. Not sure why at the moment.
 4. Looks like when deploying larger ASN counts that everything begins at 150 and counts upward. So the first 150 ganache accounts don't really provide any value at the moment. Not an issue, but something to be aware of. 
+5. I made new repositories on my account and set to public for easy update/changes. I can switch back, but one of Greg's was private and required entering my gpd key and programming that in to the compiler in order to pull. I am sure there is a way to automate without hard coding a password token in...but haven't got there. This was a quick test/fix.
+
+
 
 ## Documentation
 
