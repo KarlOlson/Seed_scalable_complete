@@ -23,7 +23,7 @@ including Blockchain, Botnet, and many other useful elements of the Internet.
 -  [Contributing](#contributing)
 -  [License](#license)
 
-##Changes to base SEED Simulator
+## Changes to base SEED Simulator
 
 Note this is currently deployed in the base SEED environment only and not converted to the cloudlab deployment yet. You should be able to deploy 60-ish nodes on a laptop that has dedicated 8GB of RAM to the environment. 
 
