@@ -38,6 +38,28 @@ while read -sr expr; do {
 }; done
 [ "$last_pid" != 0 ] && kill $last_pid
 """
+DockerCompilerFileTemplates['ganache'] = """\
+#!/bin/bash
+LOG_LOCATION=/bgp_smart_contracts/logs
+exec > >(tee -i $LOG_LOCATION/GanacheLogFile.log)
+exec 2>&1
+ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache
+sleep 10
+python3 /bgp_smart_contracts/src/compile.py
+sleep 5
+python3 /blockchain_code/src/deploy.py ACCOUNT0
+echo 'Ganache setup ran. Check Logs for details.'
+
+"""
+DockerCompilerFileTemplates['proxy'] = """\
+#!/bin/bash
+LOG_LOCATION=/bgp_smart_contracts/logs
+exec > >(tee -i $LOG_LOCATION/ProxyLogFile.log)
+exec 2>&1
+python3 /bgp_smart_contracts/src/proxy.py
+echo 'Proxy setup ran. Check Logs for details.'
+
+"""
 
 DockerCompilerFileTemplates['seedemu_worker'] = """\
 #!/bin/bash
@@ -830,14 +852,19 @@ class Docker(Compiler):
             start_commands += 'chmod +x /replace_address.sh\n'
             start_commands += '/replace_address.sh\n'
             if node.getName() == "ix100":
-                start_commands += 'ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache\n'
-                start_commands += 'python3 /bgp_smart_contracts/src/compile.py\n'
-                start_commands += 'python3 /blockchain_code/src/deploy.py ACCOUNT0\n'
+		start_commands += 'chmod +x /ganache.sh\n'
+                start_commands += '/ganache.sh\n'
+                #start_commands += 'ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache\n'
+                #start_commands += 'python3 /bgp_smart_contracts/src/compile.py\n'
+                #start_commands += 'python3 /blockchain_code/src/deploy.py ACCOUNT0\n'
             else:
-                start_commands += 'python3 /blockchain_code/src/proxy.py\n'
+                start_commands += 'chmod +x /proxy.sh\n'
+                start_commands += '/proxy.sh\n'
             dockerfile += self._addFile('/replace_address.sh', DockerCompilerFileTemplates['replace_address_script'])
             dockerfile += self._addFile('/dummy_addr_map.txt', dummy_addr_map)
             dockerfile += self._addFile('/root/.zshrc.pre', DockerCompilerFileTemplates['zshrc_pre'])
+            dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
+            dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'])
 
         for (cmd, fork) in node.getStartCommands():
             start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
