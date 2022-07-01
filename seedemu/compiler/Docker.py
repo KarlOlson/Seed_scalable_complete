@@ -867,7 +867,7 @@ class Docker(Compiler):
             dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
             dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'])
 	
-        if node.getName() == "ix100"
+        if node.getName() == "ix100":
                 dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
                 start_commands += 'chmod +x /ganache.sh\n'
                 start_commands += '/ganache.sh\n'
