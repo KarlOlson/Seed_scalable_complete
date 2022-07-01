@@ -20,7 +20,7 @@ def cycle (contract_file):
         for i, line in enumerate(fp):
             if i in asn_numbers:
                 account=line.split(' ')
-                os.system('python3 add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0]))+' '+ str(account[0])+' '+str(account[1]))
+                os.system('python3 add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]))
                 print('python3 add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]))  #add asn to smart contract #python add_asn.py <account0> <account1> <ASN1> <account1_address>
                 os.system('python3 add_prefix.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+'10.'+str(account[0])+'.0.0'+' 24 '+str(account[1]))
                 print('python3 add_prefix.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+'10.'+str(account[0])+'.0.0'+' 24 '+str(account[1]))  #add prefix to smart contract #python add_prefix.py <account0> <account1> <ASN1> <ip1> <subnet1> <account1_address>
