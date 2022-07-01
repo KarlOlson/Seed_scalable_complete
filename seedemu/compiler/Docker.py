@@ -45,7 +45,7 @@ touch /bgp_smart_contracts/logs/GanacheLogFile.log
 LOG_LOCATION=/bgp_smart_contracts/logs
 exec > >(tee -i $LOG_LOCATION/GanacheLogFile.log)
 exec 2>&1
-ganache -a 200 -p 8545 -h 10.100.0.151 --deterministic --database.dbPath /ganache &
+ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache &
 sleep 2
 cd /bgp_smart_contracts/src 
 python3 compile.py 
