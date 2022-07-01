@@ -40,23 +40,33 @@ while read -sr expr; do {
 """
 DockerCompilerFileTemplates['ganache'] = """\
 #!/bin/bash
+mkdir /bgp_smart_contracts/logs
+touch /bgp_smart_contracts/logs/GanacheLogFile.log
 LOG_LOCATION=/bgp_smart_contracts/logs
 exec > >(tee -i $LOG_LOCATION/GanacheLogFile.log)
 exec 2>&1
-ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache
-sleep 10
-python3 /bgp_smart_contracts/src/compile.py
-sleep 5
-python3 /blockchain_code/src/deploy.py ACCOUNT0
+ganache -a 200 -p 8545 -h 10.100.0.151 --deterministic --database.dbPath /ganache &
+sleep 2
+cd /bgp_smart_contracts/src 
+python3 compile.py 
+sleep 2 
+python3 deploy.py ACCOUNT0
+sleep 2
+python3 account_script.py 
 echo 'Ganache setup ran. Check Logs for details.'
+cd ..
+cd ..
 
 """
 DockerCompilerFileTemplates['proxy'] = """\
 #!/bin/bash
+mkdir /bgp_smart_contracts/logs
+touch /bgp_smart_contracts/logs/ProxyFile.log
 LOG_LOCATION=/bgp_smart_contracts/logs
 exec > >(tee -i $LOG_LOCATION/ProxyLogFile.log)
 exec 2>&1
-python3 /bgp_smart_contracts/src/proxy.py
+cd /bgp_smart_contracts/src/
+python3 proxy.py
 echo 'Proxy setup ran. Check Logs for details.'
 
 """
@@ -851,20 +861,21 @@ class Docker(Compiler):
         if self.__self_managed_network:
             start_commands += 'chmod +x /replace_address.sh\n'
             start_commands += '/replace_address.sh\n'
-            if node.getName() == "ix100":
-		start_commands += 'chmod +x /ganache.sh\n'
-                start_commands += '/ganache.sh\n'
-                #start_commands += 'ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache\n'
-                #start_commands += 'python3 /bgp_smart_contracts/src/compile.py\n'
-                #start_commands += 'python3 /blockchain_code/src/deploy.py ACCOUNT0\n'
-            else:
-                start_commands += 'chmod +x /proxy.sh\n'
-                start_commands += '/proxy.sh\n'
             dockerfile += self._addFile('/replace_address.sh', DockerCompilerFileTemplates['replace_address_script'])
             dockerfile += self._addFile('/dummy_addr_map.txt', dummy_addr_map)
             dockerfile += self._addFile('/root/.zshrc.pre', DockerCompilerFileTemplates['zshrc_pre'])
             dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
             dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'])
+	
+        if node.getName() == "ix100"
+                dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
+                start_commands += 'chmod +x /ganache.sh\n'
+                start_commands += '/ganache.sh\n'
+
+        else:
+                dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'])
+                start_commands += 'chmod +x /proxy.sh\n'
+                start_commands += '/proxy.sh\n'
 
         for (cmd, fork) in node.getStartCommands():
             start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
@@ -873,26 +884,25 @@ class Docker(Compiler):
             startCommands = start_commands
         ))
 
-        dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
-        dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
         dockerfile += 'RUN apt-get install -y npm build-essential python3 python3-pip python-dev libnetfilter-queue-dev nodejs git\n'
-        dockerfile+= 'RUN pip3 install py-solc-x web3 python-dotenv scapy\n'
-        dockerfile+= 'RUN npm update -g\n'
-        dockerfile+= 'RUN npm install -g ganache\n'
-        dockerfile+= 'RUN npm install -g npm@8.5.3\n'
-        dockerfile+= 'RUN pip3 install --upgrade pip\n'
-        dockerfile+= 'RUN pip3 install eth-brownie Flask scapy flask-restful\n'
-        dockerfile+= 'RUN pip3 install NetfilterQueue eth-utils\n'
-        dockerfile+= 'RUN git clone https://github.com/KarlOlson/bgp_smart_contracts.git\n'
-        dockerfile+= 'RUN python3 /bgp_smart_contracts/src/solc_ver_install.py\n'
-
+        dockerfile += 'RUN pip3 install py-solc-x web3 python-dotenv\n'
+        dockerfile += 'RUN npm update -g\n'
+        dockerfile += 'RUN npm install -g ganache\n'
+        dockerfile += 'RUN npm install -g npm@8.5.3\n'
+        dockerfile += 'RUN pip3 install --upgrade pip\n'
+        dockerfile += 'RUN pip3 install eth-brownie Flask scapy flask-restful\n'
+        dockerfile += 'RUN pip3 install NetfilterQueue eth-utils\n'
+        dockerfile += 'RUN git clone https://github.com/secdev/scapy.git\n'
+        dockerfile += 'WORKDIR /scapy\n'
+        dockerfile += 'RUN python3 setup.py install\n'
+        dockerfile += 'WORKDIR /\n'
+        dockerfile += 'RUN git clone --depth 1 --filter=blob:none --no-checkout https://github.com/KarlOlson/Seed_scalable/\n'
+        dockerfile += 'RUN git sparse-checkout set bgp_smart_contracts\n'
+        dockerfile += 'RUN python3 /bgp_smart_contracts/src/solc_ver_install.py\n'
         dockerfile += 'RUN chmod +x /start.sh\n'
         dockerfile += 'RUN chmod +x /seedemu_sniffer\n'
         dockerfile += 'RUN chmod +x /seedemu_worker\n'
-#        if node.getName() == "ix100":
-#            dockerfile += 'RUN ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache\n'
-#            dockerfile += 'RUN python3 /bgp_smart_contracts/src/compile.py\n'
-#            dockerfile += 'RUN python3 /blockchain_code/src/deploy.py ACCOUNT0\n'
+
 
         for file in node.getFiles():
             (path, content) = file.get()
