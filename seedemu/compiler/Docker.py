@@ -883,6 +883,9 @@ class Docker(Compiler):
         dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
             startCommands = start_commands
         ))
+	
+        dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
+        dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
 
         dockerfile += 'RUN apt-get install -y npm build-essential python3 python3-pip python-dev libnetfilter-queue-dev nodejs git\n'
         dockerfile += 'RUN pip3 install py-solc-x web3 python-dotenv\n'
