@@ -35,7 +35,7 @@ def incoming(pkt):
     print("Checking for BGP Update Header")
     if (str(pkt.summary()).find('BGPHeader') > 0) and (pkt[BGPHeader].type == 2) : #dont actually need if filtering on BGP in or>
         print("BGP Update Header Detected")
-	try:
+        try:
             if pkt[BGPUpdate].path_attr[1].attribute.segments[0].segment_length == 1:
                 print ("    Destination IP = " + pkt[IP].dst) #Remote AS
                 print ("    Source IP = " + pkt[IP].src) #Local AS
@@ -64,16 +64,16 @@ def incoming(pkt):
                 return True
             else:
                 return True
-	except:
+        except:
            print("BGPUpdate was to announce ASN dropped. No check performed.")
     else:
-         return True
+        return True
 				
 def outgoing(pkt):
     print("Checking for BGP Update Header")
     if (str(pkt.summary()).find('BGPHeader') > 0) and (pkt[BGPHeader].type == 2) : #dont actually need if filtering on BGP in sniff() function
         print("BGP Update Header Detected")
-	try:
+        try:
             if pkt[BGPUpdate].path_attr[1].attribute.segments[0].segment_length == 1:
                 print ("    Destination IP = " + pkt[IP].dst) #Remote AS
                 print ("    Source IP = " + pkt[IP].src) #Local AS
@@ -102,7 +102,7 @@ def outgoing(pkt):
                 return True
             else:
                 return True
-	except:
+        except:
            print("Update was to announce ASN dropped. No check performed.")
     else:
          return True
