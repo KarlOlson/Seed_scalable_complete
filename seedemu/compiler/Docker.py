@@ -61,7 +61,6 @@ cd ..
 DockerCompilerFileTemplates['proxy'] = """\
 #!/bin/bash
 mkdir /bgp_smart_contracts/logs
-touch /bgp_smart_contracts/logs/ProxyFile.log
 LOG_LOCATION=/bgp_smart_contracts/logs
 exec > >(tee -i $LOG_LOCATION/ProxyLogFile.log)
 exec 2>&1
@@ -888,17 +887,17 @@ class Docker(Compiler):
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
 
         dockerfile += 'RUN apt-get install -y npm build-essential python3 python3-pip python-dev libnetfilter-queue-dev nodejs git\n'
-        dockerfile += 'RUN pip3 install py-solc-x web3 python-dotenv\n'
+        dockerfile += 'RUN pip3 install py-solc-x web3 python-dotenv scapy==2.4.4\n'
         dockerfile += 'RUN npm update -g\n'
         dockerfile += 'RUN npm install -g ganache\n'
         dockerfile += 'RUN npm install -g npm@8.5.3\n'
         dockerfile += 'RUN pip3 install --upgrade pip\n'
         dockerfile += 'RUN pip3 install eth-brownie Flask scapy flask-restful\n'
         dockerfile += 'RUN pip3 install NetfilterQueue eth-utils\n'
-        dockerfile += 'RUN git clone https://github.com/secdev/scapy.git\n'
-        dockerfile += 'WORKDIR /scapy\n'
-        dockerfile += 'RUN python3 setup.py install\n'
-        dockerfile += 'WORKDIR /\n'
+        #dockerfile += 'RUN git clone https://github.com/secdev/scapy.git\n'
+        #dockerfile += 'WORKDIR /scapy\n'
+        #dockerfile += 'RUN python3 setup.py install\n'
+        #dockerfile += 'WORKDIR /\n'
         dockerfile += 'RUN git clone --depth 1 --filter=blob:none --no-checkout https://github.com/KarlOlson/Seed_scalable/\n'
 	dockerfile += 'WORKDIR /Seed_scalable\n'
         dockerfile += 'RUN git sparse-checkout set bgp_smart_contracts\n'
