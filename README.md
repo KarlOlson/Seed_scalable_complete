@@ -19,8 +19,6 @@ including Blockchain, Botnet, and many other useful elements of the Internet.
 ## Table of Contents
 
 -  [Getting Started](#getting-started)
--  [Documentation](#documentation)
--  [Contributing](#contributing)
 -  [License](#license)
 
 ## Changes to base SEED Simulator
