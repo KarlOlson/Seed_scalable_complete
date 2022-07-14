@@ -87,7 +87,7 @@ You can use SEED to build a terraform project and then deploy that to google clo
 
 ### Terraform Deployment
 1. To run execute `terraform init` from your root project directory (the one with main.tf file). Make sure you have your Google cloud .json key in this directory form the earlier steps. Running init will ask a few questions about your targeted google cloud environment. For `Path to credential JSON file` enter the path to where you placed your private key (should be the same location as the main.tf file). For `Project ID`, this can be found under `IAM & Admin - > Settings` and then grab the number under `Project Number`. For `Region` and `Zone` you can pick any of the options from google. If no idea, pick `us-west4` for Region and `us-west4-b` for zone. 
-2. Everything should now deploy. Give it about 5 minutes and you should see everything deployed in your Google cloud project under the `compute` resource (under the menu). 
+2. Everything should now deploy. Give it about 5 minutes and you should see everything deployed in your Google cloud project under the `compute` resource (under the menu). Each IX will deploy on a docker swarm `master` node and each AS will deploy on its own `worker` node. All items associated with an AS will deploy on the same worker node. 
 
 
 ## License
