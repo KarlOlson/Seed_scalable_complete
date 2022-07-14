@@ -70,6 +70,25 @@ To get started with the emulator:
 8. `/bgp_smart_contracts/src/add_prefix.py` assigns prefixes to ASNs within the smart contract
 9. `Seed_scalable/seedemu/compiler/docker.py` compiler script used to build containers for both local and distrubuted environments (the distributed_docker.py calls on this to build the containers first). Edit this file if you need to change any containers with pre-loaded requirements.
 
+## Terraform and Google Cloud Deployment
+You can use SEED to build a terraform project and then deploy that to google cloud programmatically. This will walk you thorugh steps necessary to deploy in GCP.
+
+### Google Cloud Setup
+1. Go to https://cloud.google.com/ and establish an account. You will get $300 in compute time credit (you will need a credit card to verify yourself, but it is never charged, even after use of credits). 
+2. Once you have an account, the first thing you will need to define is a new project. If first time, this should be your landing page. If not, in top left of screen is a drop down (next to the three line menu), select that and do `New Project`. 
+3. Now you need to creat a service account that will be used by the Terraform environment to deploy everything to the cloud. A service account is just like any other account, but you can control permissions and such separately to control settings as you see fit. To create a service account that will be used by Terraform, click the 3 line menu in the top left of the screen, select `IAM & Admin ->Service Accounts`. Then select `Create new account`. Give it a name like `terraform` and then click next. On role, assign it `compute admin` and then click `continue`. Click done. (alternatively you can assign other users to control this service account at this point, but probably unneccesary. 
+4. Add keys to your service account. You should see your account created, but no keys assigned. On the far right, click the three dots to bring up a menu. Then click `manage keys`. Select `add key->create new key` and then select .json as your output. A new public key will be added to your account. The private key is automatically downloaded so check your downloads. You will need to move this key to the directory that contains your terraform files. 
+
+### SEED VM Setup
+1. For the most part everything should be set up with seed. There are two changes that you need to make in order to compile to a terraform output and then deploy the terraform environment. 
+2. The first thing you need to change is compilation script to select your chosen output method. In this script change your compiler to GcpDistributedDocker() prior to compilation. 
+3. Run the compilation script for your project to generate the output files and directory which should include all the terraform scripts.
+4. Prior to deploying in terraform, you will likely need to install `jq` on your host. This is used for key generation for terraform containers. The errors don't really clue you in to the fact that this package is likely missing, so if you get a warning that 'ssh-keygen' failed, this is likely the issue. Just run a `sudo apt-get install -y jq` and you should have everything needed to run terraform.
+
+### Terraform Deployment
+1. To run execute `terraform init` from your root project directory (the one with main.tf file). Make sure you have your Google cloud .json key in this directory form the earlier steps. Running init will ask a few questions about your targeted google cloud environment. For `Path to credential JSON file` enter the path to where you placed your private key (should be the same location as the main.tf file). For `Project ID`, this can be found under `IAM & Admin - > Settings` and then grab the number under `Project Number`. For `Region` and `Zone` you can pick any of the options from google. If no idea, pick `us-west4` for Region and `us-west4-b` for zone. 
+2. Everything should now deploy. Give it about 5 minutes and you should see everything deployed in your Google cloud project under the `compute` resource (under the menu). 
+
 
 ## License
 
