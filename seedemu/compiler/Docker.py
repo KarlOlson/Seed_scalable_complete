@@ -885,8 +885,8 @@ class Docker(Compiler):
 	
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
-
-        dockerfile += 'RUN apt-get install -y npm build-essential python3 python3-pip python-dev libnetfilter-queue-dev nodejs git\n'
+        dockerfile += 'RUN apt-get -y dist-upgrade && apt-get -y update && apt install -y apt-transport-https\n'
+        dockerfile += 'RUN apt-get install -y npm build-essential python3 python3-pip python-dev nodejs git\n'
         dockerfile += 'RUN pip3 install py-solc-x web3 python-dotenv scapy==2.4.4\n'
         dockerfile += 'RUN npm update -g\n'
         dockerfile += 'RUN npm install -g ganache\n'
