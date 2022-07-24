@@ -90,6 +90,9 @@ You can use SEED to build a terraform project and then deploy that to google clo
 2. Everything should now deploy. Give it about 5 minutes and you should see everything deployed in your Google cloud project under the `compute` resource (under the menu). Each IX will deploy on a docker swarm `master` node and each AS will deploy on its own `worker` node. All items associated with an AS will deploy on the same worker node. 
 3. To prevent long term charges, you need to completely wipe the effort when done. Otherwise maintining the VMs occur charges by the minute. To wipe, go to 'IAM->Resources' and then select and delete the resources. You can also delete the project by going to the 'Dashboard->project settins-> select and delete'. 
 
+### Terraform Issues:
+1. If you deploy the terraform to the same project more than once, there is an error about some conflicting network information already existing for swarm deployment. I cannot figure out what this is (after deleting everything within the project). I have to start a new project (and create a new credential) each time I deploy. Not a big issue as you will likely clear out a project anyway to prevent recurring billing charges....but can be annoying if doing quick tests. Have yet to ID/solve conflict.
+
 
 ## License
 
