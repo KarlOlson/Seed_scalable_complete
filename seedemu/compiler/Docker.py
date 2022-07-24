@@ -893,7 +893,7 @@ class Docker(Compiler):
         dockerfile += 'RUN npm install -g npm@8.5.3\n'
         dockerfile += 'RUN pip3 install --upgrade pip\n'
         dockerfile += 'RUN pip3 install eth-brownie Flask scapy flask-restful\n'
-        dockerfile += 'RUN pip3 install NetfilterQueue eth-utils\n'
+        dockerfile += 'RUN pip3 install eth-utils\n'
         #dockerfile += 'RUN git clone https://github.com/secdev/scapy.git\n'
         #dockerfile += 'WORKDIR /scapy\n'
         #dockerfile += 'RUN python3 setup.py install\n'
