@@ -14,7 +14,7 @@ import sys
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
-tx_sender_name = "ACCOUNT1"
+tx_sender_name = "ACCOUNT"+str(sys.argv[1])
 tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
 tx_sender.load_account_keys()
 tx_sender.generate_transaction_object("IANA", "CONTRACT_ADDRESS")
