@@ -65,7 +65,7 @@ LOG_LOCATION=/bgp_smart_contracts/logs
 exec > >(tee -i $LOG_LOCATION/ProxyLogFile.log)
 exec 2>&1
 cd /bgp_smart_contracts/src/
-python3 proxy.py
+python3 proxy.py {}
 echo 'Proxy setup ran. Check Logs for details.'
 
 """
@@ -872,7 +872,7 @@ class Docker(Compiler):
                 start_commands += '/ganache.sh\n'
 
         else:
-                dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'])
+                dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'].format(node.getAsn()))
                 start_commands += 'chmod +x /proxy.sh\n'
                 start_commands += '/proxy.sh\n'
 
