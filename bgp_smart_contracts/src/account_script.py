@@ -10,8 +10,8 @@ from Utils.Utils import *
 from ipaddress import IPv4Address
 import os, sys
 
-def cycle (contract_file):
-
+#def cycle (contract_file):
+def cycle():
     with open(r"accounts.txt", 'r') as fp:
     
         asn_numbers=[150,151,152] #Enter the ASNs you want to have running the blockchain and proxy code. Alternatively use range(start, stop[, step]) for a range of values.
@@ -24,13 +24,15 @@ def cycle (contract_file):
                 print('python3 add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]))  #add asn to smart contract #python add_asn.py <account0> <account1> <ASN1> <account1_address>
                 os.system('python3 add_prefix.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+'10.'+str(account[0])+'.0.0'+' 24 '+str(account[1]))
                 print('python3 add_prefix.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+'10.'+str(account[0])+'.0.0'+' 24 '+str(account[1]))  #add prefix to smart contract #python add_prefix.py <account0> <account1> <ASN1> <ip1> <subnet1> <account1_address>
-            elif i > 7: #enter ASN# where to stop so it doesn't keep running past your known limit.
+            elif i > 153: #enter ASN# where to stop so it doesn't keep running past your known limit.
                 break
 	
 		
 if __name__=='__main__':
     print("generating ASN Accounts on Chain")
-    cycle(open('accounts.txt'))   		
+    #cycle(open('accounts.txt'))
+    cycle()
+    print("ASN accounts and prefix's added to chain")
 
 #python add_asn.py <account0> <account1> <ASN1> <account1_address>
 #python add_prefix.py <account0> <account1> <ASN1> <ip1> <subnet1> <account1_address>
