@@ -22,6 +22,7 @@ RUN echo 'exec zsh' > /root/.bashrc
 DockerCompilerFileTemplates['start_script'] = """\
 #!/bin/bash
 {startCommands}
+{specialCommands}
 echo "ready! run 'docker exec -it $HOSTNAME /bin/zsh' to attach to this node" >&2
 for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done
 tail -f /dev/null
@@ -40,11 +41,6 @@ while read -sr expr; do {
 """
 DockerCompilerFileTemplates['ganache'] = """\
 #!/bin/bash
-mkdir /bgp_smart_contracts/logs
-touch /bgp_smart_contracts/logs/GanacheLogFile.log
-LOG_LOCATION=/bgp_smart_contracts/logs
-exec > >(tee -i $LOG_LOCATION/GanacheLogFile.log)
-exec 2>&1
 ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic --database.dbPath /ganache &
 sleep 2
 cd /bgp_smart_contracts/src 
@@ -56,18 +52,12 @@ python3 account_script.py
 echo 'Ganache setup ran. Check Logs for details.'
 cd ..
 cd ..
-
 """
 DockerCompilerFileTemplates['proxy'] = """\
 #!/bin/bash
-mkdir /bgp_smart_contracts/logs
-LOG_LOCATION=/bgp_smart_contracts/logs
-exec > >(tee -i $LOG_LOCATION/ProxyLogFile.log)
-exec 2>&1
-cd /bgp_smart_contracts/src/
-python3 proxy.py {}
-echo 'Proxy setup ran. Check Logs for details.'
-
+cd /bgp_smart_contracts/src/ 
+python3 proxy.py {} &
+echo 'Proxy setup ran. Listening for packets...'
 """
 
 DockerCompilerFileTemplates['seedemu_worker'] = """\
@@ -596,6 +586,7 @@ class Docker(Compiler):
             key = 'scope',
             value = scope
         )
+        
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
             key = 'name',
@@ -637,6 +628,9 @@ class Docker(Compiler):
             key = 'asn',
             value = node.getAsn()
         )
+        
+        DockerCompilerFileTemplates['proxy'].format(node.getAsn())
+
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
             key = 'nodename',
@@ -856,6 +850,7 @@ class Docker(Compiler):
         for cmd in node.getBuildCommands(): dockerfile += 'RUN {}\n'.format(cmd)
 
         start_commands = ''
+        special_commands = ''
 
         if self.__self_managed_network:
             start_commands += 'chmod +x /replace_address.sh\n'
@@ -866,27 +861,31 @@ class Docker(Compiler):
             dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
             dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'])
 	
+	
+        for (cmd, fork) in node.getStartCommands():
+            start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
+            
+            
         if node.getName() == "ix100":
                 dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
                 start_commands += 'chmod +x /ganache.sh\n'
-                start_commands += '/ganache.sh\n'
+                special_commands += '/ganache.sh\n'
 
-        else:
+        elif "router" in node.getName():
                 dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'].format(node.getAsn()))
                 start_commands += 'chmod +x /proxy.sh\n'
-                start_commands += '/proxy.sh\n'
+                special_commands += '/proxy.sh\n'
 
-        for (cmd, fork) in node.getStartCommands():
-            start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
+
 
         dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
-            startCommands = start_commands
+            startCommands = start_commands,
+            specialCommands=special_commands
         ))
-	
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
-        dockerfile += 'RUN apt-get -y dist-upgrade && apt-get -y update && apt install -y apt-transport-https\n'
-        dockerfile += 'RUN apt-get install -y npm build-essential python3 python3-pip python-dev nodejs git\n'
+
+        dockerfile += 'RUN apt-get update && apt-get install -y npm build-essential python3 python3-pip python-dev nodejs git\n'
         dockerfile += 'RUN pip3 install py-solc-x web3 python-dotenv scapy==2.4.4\n'
         dockerfile += 'RUN npm update -g\n'
         dockerfile += 'RUN npm install -g ganache\n'
@@ -898,8 +897,8 @@ class Docker(Compiler):
         #dockerfile += 'WORKDIR /scapy\n'
         #dockerfile += 'RUN python3 setup.py install\n'
         #dockerfile += 'WORKDIR /\n'
-        dockerfile += 'RUN git clone --depth 1 --filter=blob:none --no-checkout https://github.com/KarlOlson/Seed_scalable/\n'
-        dockerfile += 'WORKDIR /Seed_scalable\n'
+        dockerfile += 'RUN git clone --depth 1 --filter=blob:none --no-checkout https://github.com/KarlOlson/Seed_scalable_complete/\n'
+        dockerfile += 'WORKDIR /Seed_scalable_complete\n'
         dockerfile += 'RUN git sparse-checkout set bgp_smart_contracts\n'
         dockerfile += 'RUN mv bgp_smart_contracts ../bgp_smart_contracts\n'
         dockerfile += 'WORKDIR /\n'
