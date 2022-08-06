@@ -68,7 +68,16 @@ To get started with the emulator:
 6. `/bgp_smart_contracts/src/deploy.py` deploys smart contract on ganache blockchain
 7. `/bgp_smart_contracts/src/add_asn.py` establishes new ASNs within the smart contract
 8. `/bgp_smart_contracts/src/add_prefix.py` assigns prefixes to ASNs within the smart contract
-9. `Seed_scalable/seedemu/compiler/docker.py` compiler script used to build containers for both local and distrubuted environments (the distributed_docker.py calls on this to build the containers first). Edit this file if you need to change any containers with pre-loaded requirements.
+9. `Seed_scalable_complete/seedemu/compiler/docker.py` compiler script used to build containers for both local and distrubuted environments (the distributed_docker.py calls on this to build the containers first). Edit this file if you need to change any containers with pre-loaded requirements. Alternatively, if something necessary on all images, update the base image (see below).
+10. `Seed_scalable_complete/Dockerfile` is the base build image. It is saved on docker repository as: `karlolson1/bgpchain:latest`. If you are going to add something to base image, then use this file and update compiler to point to your docker image, or update the `karlolson1/bgpchain:latest` image. This pre-build speeds up processing of images significantly.
+
+## Base Image Customization
+Currently the base image used for all devices is found at `Seed_scalable_complete/Dockerfile` and on docker hub as `karlolson1/bgpchain:latest`. The compiler points to this image to help speed up processing on builds by using an image that has everything pre-loaded (everything in the `Seed_scalable_complete/Dockerfile`). If you plan to update the image, follow the below steps:
+1. Modify the `Seed_scalable_complete/Dockerfile` to reflect your changes and save.
+2. Run `docker image build .` from the directory of the Dockerfile. Alternatively, you can replace the `.` with the location of an alternate dockerfile. 
+3. Tag the image by running `docker tag local-image:tagname new-repo:tagname`. You will have to figure out what your local image name is if you didn't specify a tag while building. Eg. `docker tag e34dca56 karlolson1/bgpchain:latest
+4. Push the new image to your repository using `docker push new-repo:tagname' , eg. `docker push karlolson1/bgpchain:latest`. If you get an error you may not be logged in to your docker account. If so, run `docker login` and follow prompt to log in to your account first and retry the push.
+
 
 ## Terraform and Google Cloud Deployment
 You can use SEED to build a terraform project and then deploy that to google cloud programmatically. This will walk you thorugh steps necessary to deploy in GCP.
