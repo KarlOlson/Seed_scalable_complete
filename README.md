@@ -76,7 +76,7 @@ Currently the base image used for all devices is found at `Seed_scalable_complet
 1. Modify the `Seed_scalable_complete/Dockerfile` to reflect your changes and save.
 2. Run `docker image build .` from the directory of the Dockerfile. Alternatively, you can replace the `.` with the location of an alternate dockerfile. 
 3. Tag the image by running `docker tag local-image:tagname new-repo:tagname`. You will have to figure out what your local image name is if you didn't specify a tag while building. Eg. `docker tag e34dca56 karlolson1/bgpchain:latest
-4. Push the new image to your repository using `docker push new-repo:tagname' , eg. `docker push karlolson1/bgpchain:latest`. If you get an error you may not be logged in to your docker account. If so, run `docker login` and follow prompt to log in to your account first and retry the push.
+4. Push the new image to your repository using `docker push new-repo:tagname` , eg. `docker push karlolson1/bgpchain:latest`. If you get an error you may not be logged in to your docker account. If so, run `docker login` and follow prompt to log in to your account first and retry the push.
 
 
 ## Terraform and Google Cloud Deployment
