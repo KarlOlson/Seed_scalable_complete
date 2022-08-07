@@ -33,6 +33,8 @@ Note this is currently deployed in the base SEED environment only and not conver
 6. When running `deploy.py` the contract address generated is deterministic and is pre-loaded into the `.env` file. No editing necessary.
 7. Added `account_script.py` to `/src`. Running this on `ix100` will deploy the specified ASNs and prefix's to the smart contract. See Account Deployment section for more detail on operation.
 8. Added `proxy.py` to `/src`. This is slightly different from the EVE environment in that it works by listening on all local interfaces rather than via a pass-through proxy. It does not have the capability to control/drop packets. Need to integrate firewall controls to enable this functionality.
+9. Added `Accounts` directory to `/src`. This houses pre-made account files of varying scope for ganache deployment (5-100k accounts). 
+10. added `Docker` file to the base `seec_scalable_complete` directory for the template container build. If you want to change the base build to speed compose build times, place recurring things in here and rebuild the base container (instructions below).
 
 
 ## Getting Started
