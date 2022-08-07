@@ -23,7 +23,7 @@ including Blockchain, Botnet, and many other useful elements of the Internet.
 
 ## Changes to base SEED Simulator
 
-Note this is currently deployed in the base SEED environment only and not converted to the cloudlab deployment yet. You should be able to deploy 60-ish nodes on a laptop that has dedicated 8GB of RAM to the environment. 
+Note this is currently deployed in the base SEED environment only and not converted to the cloudlab deployment yet. You should be able to deploy 60-ish nodes on a laptop that has dedicated 8GB of RAM to the environment. NOTE: LINE NUMBERS NO LONGER MATCH AFTER CHANGES. NEED TO UPDATE BELOW:
 
 1. Added startup scripts to `docker.py` compiler for proxy and ganache (lines `41-71`) and added their startup to the start.sh script (lines `869-877`). 
 2. Edited `docker.py` compiler lines `889-909` to add base image configuration to each docker device in the network. This includes all software and packages necessary to run blockchain, smart contract and proxy actions.
@@ -32,7 +32,8 @@ Note this is currently deployed in the base SEED environment only and not conver
 5. Added `solc_ver_install.py` file to `/src` to pre-install compatability requirements for greg's smart contract. This is installed during docker build now. I did not delete the original from the `compile.py` in order to allow compatability with internet connected systems and completeness of programs. Python will detect installed and skip this in the `compile.py` file.
 6. When running `deploy.py` the contract address generated is deterministic and is pre-loaded into the `.env` file. No editing necessary.
 7. Added `account_script.py` to `/src`. Running this on `ix100` will deploy the specified ASNs and prefix's to the smart contract. See Account Deployment section for more detail on operation.
-8. Added `proxy.py` to `/src`. This is slightly different from the EVE environment in that it works by listening on all local interfaces rather than via a pass-through proxy. 
+8. Added `proxy.py` to `/src`. This is slightly different from the EVE environment in that it works by listening on all local interfaces rather than via a pass-through proxy. It does not have the capability to control/drop packets. Need to integrate firewall controls to enable this functionality.
+
 
 ## Getting Started
 
@@ -48,16 +49,16 @@ To get started with the emulator:
 3. Build the emulation. For this example, cd to `examples/A00-simple-peering/`, and run `python3 ./simple-peering.py`. The container files will be created inside the newly generated `output/` folder in the same directory. For some examples, such as `B02-mini-internet-with-dns`, they depend on other examples, so you need to run those examples first. This is part of our component design.
 4. Build and run the containers. First `cd output/`, then do `docker-compose build && docker-compose up`. The emulator will start running. Give it a minute or two (or longer if your emulator is large) to let the routers do their jobs. If this is a first build it can take about 40 minutes to build the containers.
 5. Optionally, start the seedemu web client. Open a new terminal window, navigate to the project root directory, cd to `client/`, and run `docker-compose build && docker-compose up`. Then point your browser to `http://127.0.0.1:8080/map.html`, and you will see the entire emulator. Use the filter box if you want to see the packet flow.
-6. It doesn't quite appear that ganache is fully automated to start yet and seems like I have to manually enable it one the environment launches. Go into the seed web client, click on the `ix100` device and then click `connect`. This will bring up the command prompt for that device. Deploy ganache by entering `$ ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic`. Optionally, you can add `--database.dbPath /ganache` if you want to store and maintain the updates on the chain. I typically dont. 
-7. Establish the contract and the initial conditions by running `$python3 compile.py` followed by `python3 deploy.py ACCOUNT0`. This can be done from any device as they are all pre-loaded with these scripts. Once this is setup, you can run `account_script.py` to bulk deploy ASNs and Prefix's to the contract. Within here you can specify the ASNs you want authorized for the chain by defining line 16 values. So if you pick `asn_number=[151,152]` as the values, this will load the blockchain by assigning those ASNs to Account 151 and Account 152 along with their prefixes: 10.151.0.0/24 and 10.152.0.0/24. Those routers will then have to validate their actions on the chain when advertising.
-8. Validate and view proxy implementation on routing devices. Proxy should be running on each routing device. If not, you can manually deploy by running: `/bgp_smart_contracts/src/proxy.py` code to launch the proxy to begin intercepting packets and validating BGP packets with blockchain. 
+6. [OPTIONAL] Ganache is set to load on the `ix100` device at startup and deploy the `IANA ACCOUNT0` account followed by the accounts and prefixes specified in the `account_script.py` script. You should see in your terminal after the containers deploy these accounts deploying on the chain successfully. If there is an issue or you want to reset the blockchain you can do so by going into the seed web client, click on the `ix100` device and then click `connect`. This will bring up the command prompt for that device. Deploy ganache by entering `$ ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic`. Optionally, you can add `--database.dbPath /ganache` if you want to store and maintain the updates on the chain. I typically dont. 
+7. [OPTIONAL] The startup scripts will establish the contract and the initial conditions by automatically running `$python3 compile.py` followed by `python3 deploy.py ACCOUNT0`. If you desire to add accounts separately later, this can be done from any device as they are all pre-loaded with these scripts. Once this is setup, you can run `account_script.py` to bulk deploy ASNs and Prefix's to the contract. Within here you can specify the ASNs you want authorized for the chain by defining line 16 values. So if you pick `asn_number=[151,152]` as the values, this will load the blockchain by assigning those ASNs to Account 151 and Account 152 along with their prefixes: 10.151.0.0/24 and 10.152.0.0/24. Those routers will then have to validate their actions on the chain when advertising.
+8. [OPTIONAL] Again, the proxy will deploy automatically on each device. You can verify by running a `ps -aux` on your device and you should see a process for the python proxy script. Proxy should be running on each routing device by default. If not, you can manually deploy by running: `/bgp_smart_contracts/src/proxy.py` code to launch the proxy to begin intercepting packets and validating BGP packets with blockchain. 
 
 ## Known issues/To be worked.
 
-1. Looks like when deploying larger ASN counts that everything begins at 150 and counts upward. So the first 150 ganache accounts don't really provide any value at the moment. Not an issue, but something to be aware of. 
-2. I made new repositories on my account and set to public for easy update/changes. I can switch back, but one of Greg's was private and required entering my gpd key and programming that in to the compiler in order to pull. I am sure there is a way to automate without hard coding a password token in...but haven't got there. This was a quick test/fix.
-3. The proxy stops/locks when using the graphical `disconnect` is used to stop/re-enable the bgp routing in seed.
-4. Not an issue, but something to be aware of: The proxies are configured to only act on their own or neighbor updates. So changes occuring 2+ routers away do not trigger chain lookups.
+1. I made new repositories on my account and set to public for easy update/changes. I can switch back, but one of Greg's was private and required entering my gpd key and programming that in to the compiler in order to pull. I am sure there is a way to automate without hard coding a password token in...but haven't got there. This was a quick test/fix.
+2. The proxy stops/locks when using the graphical `disconnect` on the local router in seed. Not sure on cause.
+3. Not an issue, but something to be aware of: The proxies are configured to only act on their own or neighbor updates. So changes occuring 2+ routers away do not trigger chain lookups.
+4. The proxies deploy (even with docker depends-on trigger) before the blockchain is fully deployed. This prevents some necessary account info from being setup to validate requests. Am working a script to listen for blockchain setup completion before running proxy to avoid this issue. Otherwise to play right now you just need to reload the proxy on the device you are using and all is well.
 
 ## Key Files:
 1. `/bgp_smart_contracts/src/.env` contains all the account info and location of system running the ganache chain. Used by all the blockchain setup scripts.
@@ -72,11 +73,12 @@ To get started with the emulator:
 10. `Seed_scalable_complete/Dockerfile` is the base build image. It is saved on docker repository as: `karlolson1/bgpchain:latest`. If you are going to add something to base image, then use this file and update compiler to point to your docker image, or update the `karlolson1/bgpchain:latest` image. This pre-build speeds up processing of images significantly.
 
 ## Base Image Customization
-Currently the base image used for all devices is found at `Seed_scalable_complete/Dockerfile` and on docker hub as `karlolson1/bgpchain:latest`. The compiler points to this image to help speed up processing on builds by using an image that has everything pre-loaded (everything in the `Seed_scalable_complete/Dockerfile`). If you plan to update the image, follow the below steps:
+Currently the base image config used for all devices is found at `Seed_scalable_complete/Dockerfile` and on docker hub as `karlolson1/bgpchain:latest`. The compiler points to this image to help speed up processing on builds by using an image that has everything pre-loaded (everything in the `Seed_scalable_complete/Dockerfile`). If you plan to update the image, follow the below steps:
 1. Modify the `Seed_scalable_complete/Dockerfile` to reflect your changes and save.
 2. Run `docker image build .` from the directory of the Dockerfile. Alternatively, you can replace the `.` with the location of an alternate dockerfile. 
 3. Tag the image by running `docker tag local-image:tagname new-repo:tagname`. You will have to figure out what your local image name is if you didn't specify a tag while building. Eg. `docker tag e34dca56 karlolson1/bgpchain:latest
 4. Push the new image to your repository using `docker push new-repo:tagname` , eg. `docker push karlolson1/bgpchain:latest`. If you get an error you may not be logged in to your docker account. If so, run `docker login` and follow prompt to log in to your account first and retry the push.
+5. You also may have an old image of the same name locally. If you see that nothing was pushed, check your list of images and see if there is a conflicting one. Remove it with `docker rmi <imagename>`.
 
 
 ## Terraform and Google Cloud Deployment
