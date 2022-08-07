@@ -76,7 +76,7 @@ def incoming(pkt):
         return True
 
 def outgoing(pkt):
-     print("Checking for BGP Update Header")
+    print("Checking for BGP Update Header")
     if (str(pkt.summary()).find('BGPHeader') > 0) and (pkt[BGPHeader].type == 2) : #Check if packet has a BGPHeader and if it is of type==2 (BGPUpdate). 
         print("BGP Update Header Detected")
         try:
