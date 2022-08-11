@@ -1090,6 +1090,7 @@ class Docker(Compiler):
         #dockerfile += 'RUN git sparse-checkout set bgp_smart_contracts\n'
         #dockerfile += 'RUN mv bgp_smart_contracts ../bgp_smart_contracts\n'
         #dockerfile += 'WORKDIR /\n'
+	dockerfile += 'RUN pip3 install netfilterqueue\n'
 	dockerfile += 'RUN apt-get install iptables sudo -y\n'
         dockerfile += 'RUN python3 /bgp_smart_contracts/src/solc_ver_install.py\n'
         dockerfile += 'RUN chmod +x /start.sh\n'
