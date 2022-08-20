@@ -17,4 +17,7 @@ WORKDIR /Seed_scalable_complete
 RUN git sparse-checkout set bgp_smart_contracts
 RUN mv bgp_smart_contracts ../bgp_smart_contracts
 WORKDIR /
+RUN apt-get install -y libnfnetlink-dev libnetfilter-queue-dev
+RUN pip3 install netfilterqueue
+RUN apt-get install iptables sudo -y
 RUN python3 /bgp_smart_contracts/src/solc_ver_install.py
