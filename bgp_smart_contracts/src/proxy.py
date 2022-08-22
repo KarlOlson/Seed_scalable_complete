@@ -1,4 +1,4 @@
-#!/usr/bin/python3.10
+#!/usr/bin/python3
 #To Run:
 #Install scapy: $sudo pip install scapy
 #Run Proxy Sniffer $sudo python3 <filename.py>
@@ -17,6 +17,7 @@ load_contrib('bgp') #scapy does not automatically load items from Contrib. Must 
 #####Synchronizes ASN with blockchain account data##################
 tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg. ACCOUNT151 we do this programmatically later in program
 tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
+print(tx_sender)
 tx_sender.load_account_keys()
 tx_sender.generate_transaction_object("IANA", "CONTRACT_ADDRESS")
 print("Transaction setup complete for: " + tx_sender_name)
