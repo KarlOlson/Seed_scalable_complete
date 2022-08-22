@@ -140,7 +140,7 @@ def craft_negative_response_packet(pkt):
 #Placeholder chain check function. Needs to be updated with smart contract calls.  
 def bgpchain_validate(segment, tx_sender):
     print ("Validating segment.....")
-    print ("tx_sender="+tx_sender+"or "+ str(tx_sener))
+    print ("tx_sender="+tx_sender+"or "+ str(tx_sender))
     inIP = IPv4Address(segment[1])
     print (inIP)
     inSubnet = int(segment[2])
