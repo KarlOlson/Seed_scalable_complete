@@ -4,7 +4,7 @@ RUN echo 'exec zsh' > /root/.bashrc
 RUN apt-get update && apt-get install -y --no-install-recommends curl dnsutils ipcalc iproute2 iputils-ping jq mtr-tiny nano netcat tcpdump termshark vim-nox zsh
 RUN curl -L https://grml.org/zsh/zshrc > /root/.zshrc
 RUN apt-get update && apt-get install -y build-essential python3 python3-pip python3-dev nodejs git
-RUN apt-get install -y npm
+RUN apt-get install -y npm traceroute
 RUN pip3 install py-solc-x web3 python-dotenv scapy==2.4.4
 RUN npm update -g
 RUN npm install -g ganache
