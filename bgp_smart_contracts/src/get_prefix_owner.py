@@ -16,7 +16,7 @@ def main():
     tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
     tx_sender.load_account_keys()
 
-    tx_sender.generate_transaction_object("IANA", "CONTRACT_ADDRESS")
+    tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
 
     asn = tx_sender.tx.sc_getPrefixOwner(int(inIP), inSubnet)
     if str(asn) == "none" or asn == "0":

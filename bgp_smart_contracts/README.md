@@ -1,22 +1,30 @@
 # bgp_smart_contracts
 
 
-## TODO (written: 5/29/22) (updated: 5/30/22):
+## TODO (written: 5/29/22) (updated: 9/5/22):
 1) Make the below programs easier to run
-    [x] pass in "owner" and "modifier" accounts in command line
-    [x] I should be able to toggle between any of the three accounts across all python scripts instead of having to go in and change the account we're reading from in the env file. it's confusing lol
+    - [x] pass in "owner" and "modifier" accounts in command line
+    - [x] I should be able to toggle between any of the three accounts across all python scripts instead of having to go in and change the account we're reading from in the env file. it's confusing lol
 2) Implement The following
     - [x] Remove ASN 
     - [x] Remove Prefix
     - [x] Validate Prefix
-3) Give Karl a walkthrough
-    - [ ] Completed?
+    - [x] Add Advertisement
+    - [x] Valdiate Advertisement 
+    - [x] Partial Deployment Support - P -> NP -> P 
+3) BGP Code integration
+    - [x] Add Origin Validation into BGP code
+    - [ ] Add Path Validation to BGP code
+    - [ ] Ensure Origin/Path validation working together
+
 
 
 ## How to Run (so far)
-#### Methods
+#### General Methods
 - compile contract
 - deploy contract
+
+#### Origin Validation Methods
 - add/remove ASN
 - add/remove prefix
 - validate prefix
@@ -24,12 +32,16 @@
 - get prefix owner
 - get prefixes owned by ASN
 
+#### Path Validation Methods
+- add advertisement
+- validate advertisement
+
 **Implementation done with cryptographic signings**
 
 ## Install Python Dependancies
-1. web3 `sudo pip3 install web3`
-2. solc-x `sudo pip3 install py-solc-x`
-3. dotenv `sudo pip3 install python-dotenv`
+```
+python -m pip install -r requirements.txt
+```
 
 ### A couple notes
 The following accounts/addresses must be stored in .env
@@ -40,12 +52,28 @@ The following accounts/addresses must be stored in .env
 - ACCOUNT2_ADDRESS, ACCOUNT2_PRIVATE_KEY
     - Another AS Account (2)
 
+For path validation, each AS must have the contract address of all other AS's Path Validation Contracts
+- Need asn_address_mapping.yaml
+
 ### Comile and deploy the smart contract
 ```
-python compile.py 
-python deploy.py <accountN> # e.g. python deploy.py ACCOUNT0
+python compile.py <contract-name> 
+# e.g. 
+python compile.py IANA 
+# or
+python compile.py PATH_VALIDATION
+
+python deploy.py <accountN> <contract-name>
+# e.g. 
+python deploy.py ACCOUNT0 PATH_VALIDATION
 ```
-Next: Copy address printed out from deploy.py into .env file
+
+Next: 
+For IANA contract deploy, 
+- Copy address printed out from deploy.py into .env file
+
+For PATH_VALIDATION contract deploy,
+- Copy address printed out into the asn_address_mapping.yaml file under the apprpriate ASN
 
 If use ACCOUNT0
 - Note: these two commands will deploy from ACCOUNT0_ADDRESS in .env
@@ -132,6 +160,243 @@ python add_prefix.py ACCOUNT1 ACCOUNT2 200 100.0.100.0 24 0xcF0A72EFd623c7aC7f98
     - validate that ASN2 signed the message saying it want ASN1's IP/subnet. 
     - ensure ASN1 is the one calling `prefix_addPrefix()`.
         - This is important because we don't want someone else to be able to call `prefix_addPrefix()` and transfer ASN1's IP/subnet away to someone else.
+
+### Valdiate Prefix
+```
+python validate_prefix.py <account1> <ip2> <subnet2> <ASN2>
+```
+
+Example:
+```
+python validate_prefix.py ACCOUNT1 100.0.100.0 24 200
+```
+
+## Path Validation
+- BGPSEC implementation without all the heavyweight signing
+- Each AS has its own advertisement contract!
+  - Owner of contract can write to it but anybody can read from it
+  - Contract contains:
+    - Prefix and the ASN of the next Hop
+
+### Env Files examples
+#### .env
+```
+GANACHE_RPC_URL=http://127.0.0.1:7545
+CHAIN_ID = 1337
+
+ACCOUNT0_ADDRESS=<pubkey>
+ACCOUNT0_PRIVATE_KEY=<private-key>
+
+ACCOUNT1_ADDRESS=<pubkey>
+ACCOUNT1_PRIVATE_KEY=<private-key>
+
+ACCOUNT2_ADDRESS=<pubkey>
+ACCOUNT2_PRIVATE_KEY=<private-key>
+
+ACCOUNT3_ADDRESS=<pubkey>
+ACCOUNT3_PRIVATE_KEY=<private-key>
+
+ACCOUNT4_ADDRESS=<pubkey>
+ACCOUNT4_PRIVATE_KEY=<private-key>
+
+ACCOUNT5_ADDRESS=<pubkey>
+ACCOUNT5_PRIVATE_KEY=<private-key>
+
+ACCOUNT6_ADDRESS=<pubkey>
+ACCOUNT6_PRIVATE_KEY=<private-key>
+
+
+IANA_CONTRACT_ADDRESS=<IANA-contract-address>
+
+ACCOUNT1_PATH_VALIDATION_CONTRACT=<account1-path-validation-contract-address>
+ACCOUNT2_PATH_VALIDATION_CONTRACT=<account2-path-validation-contract-address>
+ACCOUNT3_PATH_VALIDATION_CONTRACT=<account3-path-validation-contract-address>
+ACCOUNT4_PATH_VALIDATION_CONTRACT=<account4-path-validation-contract-address>
+ACCOUNT5_PATH_VALIDATION_CONTRACT=<account5-path-validation-contract-address>
+ACCOUNT6_PATH_VALIDATION_CONTRACT=<account6-path-validation-contract-address>
+```
+
+#### asn_address_mapping.yaml example
+```
+---
+asn_0:
+  validation_contract: <account0-path-validation-contract-address>
+asn_100:
+  validation_contract: <account1-path-validation-contract-address>
+asn_200:
+  validation_contract: <account2-path-validation-contract-address>
+asn_300:
+  validation_contract: <account3-path-validation-contract-address>
+asn_400:
+  validation_contract: <account4-path-validation-contract-address>
+asn_500:
+  validation_contract: <account5-path-validation-contract-address>
+asn_600:
+  validation_contract: <account6-path-validation-contract-address>
+```
+
+
+### Example
+ASNs in order sending an update message for 10.0.20.0/24
+- Path: 100 -> 200 -> 300 -> 400 -> 500 -> 600 
+
+A1: 10.0.20.0/24 : 100
+  - writes to 100's own advertisement contract {10.0.20.0/24, nextHop = 200}
+  - sends A1 to 200
+
+A2: 10.0.20.0/24 : 200, 100
+  - checks there is a 10.0.20.0/24 with next hop 200 in 100's advertisement contract
+  - writes to 200's own advertisement contract {10.0.20.0/2, nextHop = 300}
+  - sends A2 to 300
+
+A3: 10.0.20.0/24 : 300, 200, 100
+  - checks there is a 10.0.20.0/24 with next hop 300 in 200's advertisement contract
+  - checks there is a 10.0.20.0/24 with next hop 200 in 100's advertisement contract
+  - writes to 300's own advertisement contract {10.0.20.0/2, nextHop = 400}
+  - sends A3 to 400...
+
+### Add Announcement Example 1
+Path of advertisements for example:
+- Path: 100 -> 200 -> 300 -> 400 -> 500 -> 600 
+  
+Format:
+```
+python add_advertisement.py <account> <ip> <subnet> <nextHopASN>
+```
+
+Example:
+```
+python add_advertisement.py ACCOUNT1 10.0.20.0 24 200
+python add_advertisement.py ACCOUNT2 10.0.20.0 24 300
+python add_advertisement.py ACCOUNT3 10.0.20.0 24 400
+python add_advertisement.py ACCOUNT4 10.0.20.0 24 500
+python add_advertisement.py ACCOUNT5 10.0.20.0 24 600
+```
+
+### Validate Advertisement Example 1
+
+```
+python validate_advertisement.py <account2> <ip> <subnet> <myASN> <Received advertisement's AS_PATH>
+```
+
+Example - Account 2 (ASN200) needs to validate that ASN100 has said for this ip/prefix it is sending it to ASN200
+```
+python validate_advertisement.py ACCOUNT2 10.0.20.0 24 200 100
+```
+
+Example - Account 3 (ASN300) needs to check down path that path 2->3 exists and 1->2 exists
+```
+python validate_advertisement.py ACCOUNT3 10.0.20.0 24 300 200 100
+```
+
+Example - Account 4 (ASN 400) checks down path that paths 3->4, 2->3, and 1->2 exist
+```
+python validate_advertisement.py ACCOUNT4 10.0.20.0 24 400 300 200 100
+```
+Example output for the last command:
+```
+AS_PATH Validation Results for: "10.0.20.0/24 : 300, 200, 100"
+ASN 300 -> ASN 400 hop in AS_PATH is: valdiateAdvertisementResult.advertisementVALID
+ASN 200 -> ASN 300 hop in AS_PATH is: valdiateAdvertisementResult.advertisementVALID
+ASN 100 -> ASN 200 hop in AS_PATH is: valdiateAdvertisementResult.advertisementVALID
+```
+
+Example of a bad path:
+- Account 5 (ASN 500) gets an advertisement: `10.0.20.0/24 : 300 200 100`
+- Note that ASN300 never said they were sending to ASN500! So this should fail. Let's try:
+
+```
+python validate_advertisement.py ACCOUNT5 10.0.20.0 24 500 300 200 100
+```
+Result:
+```
+AS_PATH Validation Results for: "10.0.20.0/24 : 300, 200, 100"
+ASN 300 -> ASN 500 hop in AS_PATH is: valdiateAdvertisementResult.advertisementINVALID
+ASN 200 -> ASN 300 hop in AS_PATH is: valdiateAdvertisementResult.advertisementVALID
+ASN 100 -> ASN 200 hop in AS_PATH is: valdiateAdvertisementResult.advertisementVALID
+```
+^ so this path 100 -> 200 -> 300 -> 500 is invalid!
+
+
+### Add Announcement Example 2
+Path of advertisements for example:
+- Path: 100 -> 200 -> 300 -> 400 -> 500 -> 600 
+  
+Format:
+```
+python add_advertisement.py <account> <ip> <subnet> <nextHopASN>
+```
+
+Example:
+```
+python add_advertisement.py ACCOUNT1 10.0.20.0 24 200
+python add_advertisement.py ACCOUNT2 10.0.20.0 24 300
+python add_advertisement.py ACCOUNT3 10.0.20.0 24 400
+# skip announcement from 400 to 500. 
+python add_advertisement.py ACCOUNT5 10.0.20.0 24 600
+```
+
+
+### Validate Advertisement Example 2 - Partial Deployment
+
+```
+python validate_advertisement.py <account2> <ip> <subnet> <myASN> <Received advertisement's AS_PATH>
+```
+
+#### Example 2: Non participant in path
+Account 6 (ASN600) needs to validate that the entire 100 -> 200 -> 300 -> 400 -> 500 -> 600 is valid
+```
+python validate_advertisement.py ACCOUNT6 10.0.20.0 24 600 500 400 300 200 10
+```
+Output:
+```
+All ASNs in AS_PATH are participants
+AS_PATH Validation Results for: "10.0.20.0/24 : 500, 400, 300, 200, 100"
+ASN 500 -> ASN 600 hop in AS_PATH is: validateAdvertisementResult.advertisementVALID
+ASN 400 -> ASN 500 hop in AS_PATH is: validateAdvertisementResult.advertisementINVALID
+ASN 300 -> ASN 400 hop in AS_PATH is: validateAdvertisementResult.advertisementVALID
+ASN 200 -> ASN 300 hop in AS_PATH is: validateAdvertisementResult.advertisementVALID
+ASN 100 -> ASN 200 hop in AS_PATH is: validateAdvertisementResult.advertisementVALID
+Entire Path is: validatePathResult.pathINVALID
+Invalid advertisements: ['400->500']
+```
+Here ^ we have an invalid path. since ACCOUNT4 (ASN400) never said it was announcing to ASN500
+
+#### Example 2: Partial Deployment Valid path
+Account 6 (ASN600) needs to validate that the entire 100 -> 200 -> 300 -> 400 -> 500 -> 600 is valid
+- In this case, ASN400 will not participate. To simulate this, comment out the folling lines in `asn_address_mapping.yaml`:
+```
+asn_400:
+  validation_contract: <account4-path-validation-contract-address>
+```
+- Now, when we look for ASN 400's contract, it won't exist, indicating we don't know it or ASN400 is a non participant
+
+Run:
+```
+python validate_advertisement.py ACCOUNT6 10.0.20.0 24 600 500 400 300 200 100
+```
+Output:
+```
+P -> NP -> P found for: (300,400,500)
+AS_PATH Validation Results for: "10.0.20.0/24 : 500, 400, 300, 200, 100"
+ASN 500 -> ASN 600 hop in AS_PATH is: validateAdvertisementResult.advertisementVALID
+ASN 400 -> ASN 500 hop in AS_PATH is: validateAdvertisementResult.nonParticipantSource
+ASN 300 -> ASN 400 hop in AS_PATH is: validateAdvertisementResult.advertisementVALID
+ASN 200 -> ASN 300 hop in AS_PATH is: validateAdvertisementResult.advertisementVALID
+ASN 100 -> ASN 200 hop in AS_PATH is: validateAdvertisementResult.advertisementVALID
+Entire Path is: validatePathResult.pathPnpVALID
+Non participants: [400]
+```
+Result:
+- Here ^ we have a non partipant (NP) surrounded by 2 participating ASNs (P). 
+- If we assume no two ASNs are scheming together, this should be a valid advertisement. 
+  - ASN500 checks that ASN300 sent to ASN400. And ASN500 got the message from ASN400. 
+  
+Note: if there are two or more non participants in a row, then the path validation should fail.
+
+
+
+
 
 ------------------------------------------
 
