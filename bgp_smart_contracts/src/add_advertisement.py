@@ -20,10 +20,6 @@ def main():
     my_path_validation_contract_env_name = tx_sender_name + "_PATH_VALIDATION_CONTRACT"
     tx_sender.generate_transaction_object("PATH_VALIDATION", my_path_validation_contract_env_name)
 
-    # data to hash and sign
-    data_types = ['uint32', 'uint8', 'uint32']
-    data = [int(inIP), inSubnet, inNextHop]
-
     # Generate deploy contract transaction object
     tx = tx_sender.tx.sc_addAdvertisementToMyContract(tx_sender.get_nonce(), int(inIP), inSubnet, inNextHop, )
     # sign and deploy contract
