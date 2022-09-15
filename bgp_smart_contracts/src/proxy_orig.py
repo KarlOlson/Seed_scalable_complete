@@ -18,7 +18,7 @@ load_contrib('bgp') #scapy does not automatically load items from Contrib. Must 
 tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg. ACCOUNT151 we do this programmatically later in program
 tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
 tx_sender.load_account_keys()
-tx_sender.generate_transaction_object("IANA", "CONTRACT_ADDRESS")
+tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
 print("Transaction setup complete for: " + tx_sender_name)
 
 

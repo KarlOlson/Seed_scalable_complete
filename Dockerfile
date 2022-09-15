@@ -12,12 +12,13 @@ RUN npm install -g npm@8.5.3
 RUN pip3 install --upgrade pip
 RUN pip3 install eth-brownie Flask scapy flask-restful
 RUN pip3 install eth-utils
-# RUN git clone --depth 1 --filter=blob:none --no-checkout https://github.com/KarlOlson/Seed_scalable_complete/
-# WORKDIR /Seed_scalable_complete
-#RUN git sparse-checkout set bgp_smart_contracts
-#RUN mv bgp_smart_contracts ../bgp_smart_contracts
+RUN git clone --depth 1 --filter=blob:none -b greg-bgpsec https://github.com/KarlOlson/Seed_scalable_complete/
+WORKDIR /Seed_scalable_complete
+RUN git sparse-checkout set bgp_smart_contracts
+RUN git branch
+RUN mv bgp_smart_contracts ../bgp_smart_contracts
 WORKDIR /
-ADD bgp_smart_contracts /bgp_smart_contracts
+# ADD bgp_smart_contracts /bgp_smart_contracts
 RUN apt-get install -y libnfnetlink-dev libnetfilter-queue-dev
 RUN pip3 install netfilterqueue
 RUN apt-get install iptables sudo -y

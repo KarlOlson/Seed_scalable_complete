@@ -19,7 +19,7 @@ tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg
 tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
 #print(tx_sender)
 tx_sender.load_account_keys()
-tx_sender.generate_transaction_object("IANA", "CONTRACT_ADDRESS")
+tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
 print("Transaction setup complete for: " + tx_sender_name)
 
 ################Establishes local IPTABLES Rule to begin processing packets############
