@@ -45,9 +45,9 @@ DockerCompilerFileTemplates['ganache'] = """\
 ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic & 
 sleep 2
 cd /bgp_smart_contracts/src 
-python3 compile.py 
+python3 compile.py IANA
 sleep 2 
-python3 deploy.py ACCOUNT0
+python3 deploy.py ACCOUNT0 IANA
 sleep 2
 python3 account_script.py 
 echo 'Ganache setup ran. Check Logs for details.'
