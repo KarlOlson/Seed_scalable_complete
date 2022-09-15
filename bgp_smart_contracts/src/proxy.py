@@ -15,18 +15,18 @@ import os, sys
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
 #####Synchronizes ASN with blockchain account data##################
-tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg. ACCOUNT151 we do this programmatically later in program
-tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
-#print(tx_sender)
-tx_sender.load_account_keys()
-tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
-print("Transaction setup complete for: " + tx_sender_name)
+# tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg. ACCOUNT151 we do this programmatically later in program
+# tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
+# #print(tx_sender)
+# tx_sender.load_account_keys()
+# tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
+# print("Transaction setup complete for: " + tx_sender_name)
 
 ################Establishes local IPTABLES Rule to begin processing packets############
 QUEUE_NUM = 1
 # insert the iptables FORWARD rule
-os.system("iptables -I INPUT -p tcp --dport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
-os.system("iptables -I OUTPUT -p tcp --dport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
+# os.system("iptables -I INPUT -p tcp --dport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
+# os.system("iptables -I OUTPUT -p tcp --dport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
 
 """
 TODO: implement
@@ -191,16 +191,18 @@ def bgpchain_validate(segment, tx_sender):
 
 
 if __name__=='__main__':
+    sys.exit(0)
+    # return
 
 # instantiate the netfilter queue
-   nfqueue = NetfilterQueue()
+    nfqueue = NetfilterQueue()
  
-   try:
-      nfqueue.bind(1, pkt_in)
-       #nfqueue.bind(2, pkt_in)
-      nfqueue.run()
-   except KeyboardInterrupt:
-      print('')
-      # remove that rule we just inserted, going back to normal.
-      os.system("iptables --flush")
-      nfqueue.unbind()
+    try:
+        nfqueue.bind(QUEUE_NUM, pkt_in)
+        #nfqueue.bind(2, pkt_in)
+        nfqueue.run()
+    except KeyboardInterrupt:
+        print('')
+        # remove that rule we just inserted, going back to normal.
+        os.system("iptables --flush")
+        nfqueue.unbind()
