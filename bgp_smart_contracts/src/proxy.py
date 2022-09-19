@@ -15,18 +15,20 @@ import os, sys
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
 #####Synchronizes ASN with blockchain account data##################
-# tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg. ACCOUNT151 we do this programmatically later in program
-# tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
-# #print(tx_sender)
-# tx_sender.load_account_keys()
-# tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
-# print("Transaction setup complete for: " + tx_sender_name)
+tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg. ACCOUNT151 we do this programmatically later in program
+tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
+#print(tx_sender)
+tx_sender.load_account_keys()
+tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
+print("Transaction setup complete for: " + tx_sender_name)
 
 ################Establishes local IPTABLES Rule to begin processing packets############
 QUEUE_NUM = 1
 # insert the iptables FORWARD rule
-# os.system("iptables -I INPUT -p tcp --dport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
-# os.system("iptables -I OUTPUT -p tcp --dport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
+os.system("iptables -I INPUT -p tcp --dport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
+os.system("iptables -I INPUT -p tcp --sport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
+os.system("iptables -I OUTPUT -p tcp --dport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
+os.system("iptables -I OUTPUT -p tcp --sport 179 -j NFQUEUE --queue-num {}".format(QUEUE_NUM))
 
 """
 TODO: implement
@@ -76,71 +78,73 @@ def pkt_in(packet):
     print("rx packet")
     pkt = IP(packet.get_payload())
     print(str(pkt.summary()))
-    if (str(pkt.summary()).find('BGPHeader') > 0):
-        print("rx BGP packet")
-        if pkt[BGPHeader].type == 2: #Check if packet has a BGPHeader and if it is of type==2 (BGPUpdate). 
-            print("rx BGP Update pkt")
-        packet.accept()
-        # try:
-        #     if pkt[BGPUpdate].path_attr[1].attribute.segments[0].segment_length == 1:
-        #         print ("    Destination IP = " + pkt[IP].dst) #Local AS
-        #         print ("    Source IP = " + pkt[IP].src) #Remote AS
-        #         print ("    BGP Segment AS = " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length)) #even though it says segment length, that field is used to announce the A>
-        #         print ("    BGP Segment Next Hop = " + str(pkt[BGPUpdate].path_attr[2].attribute.next_hop))
-        #         #print ("    BGP Segment NLRI = " + str(pkt[BGPUpdate].nlri[0].prefix))
-        #         #print ("End of BGP Update Packet")
-        #         count = 0
-        #         for i in pkt[BGPUpdate].nlri:
-        #             print ("BGP NLRI check: " + str(pkt[BGPUpdate].nlri[count].prefix))
-        #             # chain mutable list = [AS, Network Prefix, CIDR]
-        #             adv_segment = [pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length, str(pkt[BGPUpdate].nlri[count].prefix).split('/')[0], str(pkt[BGPUpdate].nlri[count].prefix).split('/')[1], "Internal"]
-        #             print ("Advertised Segment="+str(adv_segment))
-		# 	        #print ("try seg:" + str(adv_segment[1]))
-        #             #call check on BGPchain to validate segment advertisement request
-        #             account_check=str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length)
-        #             print ("validating advertisement for ASN: "+account_check)
-        #             check=bgpchain_validate(adv_segment, tx_sender)
-        #             #print ("segment check = "+str(check))
-        #             if check == 'Authorized':
-        #                 print("NLRI " + str(count) + " passed authorization...checking next ASN")
-        #                 count +=1
-        #                 pass
-        #             else:
-        #                 print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization, Sending Notification...")
-        #                 craft_negative_response_packet(pkt)
-        #                 packet.drop() #Drops original packet without forwarding
-        #         print ("All Advertised ASN's have passed check")
+    # if (str(pkt.summary()).find('BGPHeader') > 0):
+    #     print("rx BGP packet")
+        # if pkt[BGPHeader].type == 2: #Check if packet has a BGPHeader and if it is of type==2 (BGPUpdate). 
+        #     print("rx BGP Update pkt")
+        # packet.accept()
+    if (str(pkt.summary()).find('BGPHeader') > 0) and (pkt[BGPHeader].type == 2):
+        print("rx BGP Update pkt")
+        try:
+            if pkt[BGPUpdate].path_attr[1].attribute.segments[0].segment_length == 1:
+                print ("    Destination IP = " + pkt[IP].dst) #Local AS
+                print ("    Source IP = " + pkt[IP].src) #Remote AS
+                print ("    BGP Segment AS = " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length)) #even though it says segment length, that field is used to announce the A>
+                print ("    BGP Segment Next Hop = " + str(pkt[BGPUpdate].path_attr[2].attribute.next_hop))
+                #print ("    BGP Segment NLRI = " + str(pkt[BGPUpdate].nlri[0].prefix))
+                #print ("End of BGP Update Packet")
+                count = 0
+                for i in pkt[BGPUpdate].nlri:
+                    print ("BGP NLRI check: " + str(pkt[BGPUpdate].nlri[count].prefix))
+                    # chain mutable list = [AS, Network Prefix, CIDR]
+                    adv_segment = [pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length, str(pkt[BGPUpdate].nlri[count].prefix).split('/')[0], str(pkt[BGPUpdate].nlri[count].prefix).split('/')[1], "Internal"]
+                    print ("Advertised Segment="+str(adv_segment))
+			        #print ("try seg:" + str(adv_segment[1]))
+                    #call check on BGPchain to validate segment advertisement request
+                    account_check=str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length)
+                    print ("validating advertisement for ASN: "+account_check)
+                    check=bgpchain_validate(adv_segment, tx_sender)
+                    #print ("segment check = "+str(check))
+                    if check == 'Authorized':
+                        print("NLRI " + str(count) + " passed authorization...checking next ASN")
+                        count +=1
+                        pass
+                    else:
+                        print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization, Sending Notification...")
+                        craft_negative_response_packet(pkt)
+                        packet.drop() #Drops original packet without forwarding
+                print ("All Advertised ASN's have passed check")
 
-        #         """
-        #         TODO: fix below. check if we are creating a new advertisement or passing on a new one. add advertisement to our contract
-        #         """
-        #         if outgoing_packet():
-        #             res = add_to_advertisement_contract()
-        #             if res == "fail":
-        #                 print("failed to add advertisement")
-        #             else:
-        #                 print("added advertisement")
-        #         packet.accept()
-        #     else:
-        #         print("Not a new neighbor path announcement")
-        #         packet.accept()
+                # """
+                # TODO: fix below. check if we are creating a new advertisement or passing on a new one. add advertisement to our contract
+                # """
+                # if outgoing_packet():
+                #     res = add_to_advertisement_contract()
+                #     if res == "fail":
+                #         print("failed to add advertisement")
+                #     else:
+                #         print("added advertisement")
+                packet.accept()
+            else:
+                print("Not a new neighbor path announcement")
+                packet.accept()
 
-        #     """
-        #     TODO: after originating AS origin validate, validate BGP AS path 
-        #     """
-        #     path_validation_result = validate_path(pkt)
-        #     if path_validation_result == validatePathResult.pathVALID:
-        #         print("all paths valid, accept packet")
-        #         packet.accept()
-        #     elif path_validation_result == validatePathResult.pathPnpVALID:
-        #         print("Path is PnP valid, accept")
-        #         packet.accept()
-        #     else:
-        #         print("Path is not valid!")
-        #         craft_negative_response_packet(pkt)
-        # except: 
-        #     print("bgp update error")
-            # pass
+            # """
+            # TODO: after originating AS origin validate, validate BGP AS path 
+            # """
+            # path_validation_result = validate_path(pkt)
+            # if path_validation_result == validatePathResult.pathVALID:
+            #     print("all paths valid, accept packet")
+            #     packet.accept()
+            # elif path_validation_result == validatePathResult.pathPnpVALID:
+            #     print("Path is PnP valid, accept")
+            #     packet.accept()
+            # else:
+            #     print("Path is not valid!")
+            #     craft_negative_response_packet(pkt)
+        except: 
+            print("bgp update error")
+            pass
     else:
         packet.accept()
 
@@ -191,7 +195,7 @@ def bgpchain_validate(segment, tx_sender):
 
 
 if __name__=='__main__':
-    sys.exit(0)
+    # sys.exit(0)
     # return
 
 # instantiate the netfilter queue
