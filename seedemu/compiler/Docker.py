@@ -243,7 +243,8 @@ fi
 DockerCompilerFileTemplates['proxy'] = """\
 #!/bin/bash
 cd /bgp_smart_contracts/src/ 
-./wait_for_it.sh 10.100.0.100:8545 -t 25 -- python3 proxy.py {} &
+mkdir -p logs
+./wait_for_it.sh 10.100.0.100:8545 -t 25 -- python3 -u proxy.py {} > logs/$(date +%Y-%m-%d-%H:%M:%S) &
 echo 'Proxy setup ran. Listening for packets...'
 cd ..
 cd ..
