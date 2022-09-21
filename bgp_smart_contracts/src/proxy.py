@@ -11,6 +11,7 @@ from Classes.Account import Account
 from Utils.Utils import *
 from ipaddress import IPv4Address
 import os, sys
+import datetime
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
@@ -73,6 +74,15 @@ def add_to_advertisement_contract(pkt):
 def outgoing_packet():
     # Check if packet is outgoing
     return True
+
+def get_datetime():
+    return datetime.datetime.now()
+
+old_print = print
+def ts_print(*args, **kwargs):
+    old_print(datetime.datetime.now(), *args, **kwargs)
+
+print = ts_print
 
 def pkt_in(packet):
     print("rx packet")
