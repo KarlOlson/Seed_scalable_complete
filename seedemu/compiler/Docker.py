@@ -491,7 +491,7 @@ class DockerImage(object):
 
 DefaultImages: List[DockerImage] = []
 
-DefaultImages.append(DockerImage('gregcusack/bgpchain:v1', []))
+DefaultImages.append(DockerImage('gregcusack/bgpchain:v2', []))
 
 class Docker(Compiler):
     """!
@@ -718,7 +718,7 @@ class Docker(Compiler):
 
         if self.__disable_images:
             self._log('disable-imaged configured, using base image.')
-            (image, _) = self.__images['gregcusack/bgpchain:v1']
+            (image, _) = self.__images['gregcusack/bgpchain:v2']
             return (image, nodeSoft - image.getSoftware())
 
         if self.__forced_image != None:
