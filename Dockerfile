@@ -12,7 +12,7 @@ RUN npm install -g npm@8.5.3
 RUN pip3 install --upgrade pip
 RUN pip3 install eth-brownie Flask scapy flask-restful
 RUN pip3 install eth-utils
-RUN git clone --depth 1 --filter=blob:none -b fix  https://github.com/KarlOlson/Seed_scalable_complete/
+RUN git clone --depth 1 --filter=blob:none -b greg-bgpsec  https://github.com/KarlOlson/Seed_scalable_complete/
 WORKDIR /Seed_scalable_complete
 RUN git sparse-checkout set bgp_smart_contracts
 RUN git branch
