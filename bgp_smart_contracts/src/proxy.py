@@ -12,6 +12,7 @@ from Utils.Utils import *
 from ipaddress import IPv4Address
 import os, sys
 import datetime
+import Classes.SetupPathValidation as SetupPathValidation
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
@@ -22,6 +23,11 @@ tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
 tx_sender.load_account_keys()
 tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
 print("Transaction setup complete for: " + tx_sender_name)
+
+print("Setting up Path Validation Contract......")
+path_validation = SetupPathValidation(int(sys.argv[1]))
+path_validation.compile_contract()
+path_validation.deploy_contract()
 
 ################Establishes local IPTABLES Rule to begin processing packets############
 QUEUE_NUM = 1
