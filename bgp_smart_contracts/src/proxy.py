@@ -3,6 +3,7 @@
 #Install scapy: $sudo pip install scapy
 #Run Proxy Sniffer $sudo python3 <filename.py>
 #Must run from sudo for packet processing privileges.
+from operator import add
 from netfilterqueue import NetfilterQueue
 from scapy.all import *
 import socket
@@ -16,6 +17,15 @@ import Classes.SetupPathValidation as SetupPathValidation
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
+interface='ix100'
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', bytes(ifname[:15], 'utf-8'))
+    )[20:24])
+
 #####Synchronizes ASN with blockchain account data##################
 tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg. ACCOUNT151 we do this programmatically later in program
 tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
@@ -28,6 +38,14 @@ print("Setting up Path Validation Contract......")
 path_validation = SetupPathValidation.SetupPathValidation(int(sys.argv[1]))
 path_validation.compile_contract()
 path_validation.deploy_contract()
+
+
+##################### GET PEERS ############################
+cross_connects = sys.argv[2]
+print("PRINTING CROSS CONNECTS: ")
+print(cross_connects)
+
+
 
 ################Establishes local IPTABLES Rule to begin processing packets############
 QUEUE_NUM = 1
@@ -71,8 +89,8 @@ Note: should be implemented on outgoing packets
 """
 def add_to_advertisement_contract(pkt):
     print("add to advertisement contract")
-    inIP = pkt.inIP
-    inSubnet = pkt.inSubnet
+    inIP = pkt[IP].src #this ASes IP
+    inSubnet = str(pkt[BGPUpdate].nlri[count].prefix).split('/')[1] # subnet
     inNextHop = pkt.inNextHop
 
     return tx_sender.add_advertisement(inIP, inSubnet, inNextHop)
@@ -134,6 +152,10 @@ def pkt_in(packet):
                 # """
                 # TODO: fix below. check if we are creating a new advertisement or passing on a new one. add advertisement to our contract
                 # """
+                if str(pkt[IP].src) == get_ip_address(interface):
+                    #outgoing packet
+                    res = add_to_advertisement_contract(pkt)
+
                 # if outgoing_packet():
                 #     res = add_to_advertisement_contract()
                 #     if res == "fail":

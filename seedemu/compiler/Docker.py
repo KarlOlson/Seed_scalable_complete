@@ -820,7 +820,7 @@ class Docker(Compiler):
             value = node.getAsn()
         )
         
-        DockerCompilerFileTemplates['proxy'].format(node.getAsn())
+        DockerCompilerFileTemplates['proxy'].format(node.getAsn(), node.getCrossConnects())
 
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
