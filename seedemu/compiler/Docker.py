@@ -246,6 +246,7 @@ DockerCompilerFileTemplates['proxy'] = """\
 cd /bgp_smart_contracts/src/ 
 mkdir -p logs
 ./wait_for_it.sh 10.100.0.100:8545 -t 25 -- python3 -u proxy.py {} {} > logs/$(date +%Y-%m-%d-%H:%M:%S) &
+tcpdump -i any -n tcp port 179 -w pcaps/$(date +%Y-%m-%d-%H:%M:%S).pcap &
 echo 'Proxy setup ran. Listening for packets...'
 cd ..
 cd ..
@@ -1063,7 +1064,7 @@ class Docker(Compiler):
                 special_commands += '/ganache.sh\n'
 
         elif "router" in node.getName():
-                dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'].format(node.getAsn()))
+                dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'].format(node.getAsn(), node.getCrossConnects()))
                 dockerfile += self._addFile('/bgp_smart_contracts/src/wait_for_it.sh', DockerCompilerFileTemplates['wait_for_it'])
                 start_commands += 'chmod +x /proxy.sh\n'
                 start_commands += 'chmod +x /bgp_smart_contracts/src/wait_for_it.sh\n'

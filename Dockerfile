@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl dnsutils i
 RUN curl -L https://grml.org/zsh/zshrc > /root/.zshrc
 RUN apt-get update && apt-get install -y build-essential python3 python3-pip python3-dev nodejs git
 RUN apt-get install -y npm traceroute
-RUN pip3 install py-solc-x web3 python-dotenv scapy==2.4.4
+RUN pip3 install py-solc-x web3 python-dotenv scapy==2.4.4 Pybird
 RUN npm update -g
 RUN npm install -g ganache
 RUN npm install -g npm@8.5.3
