@@ -108,14 +108,21 @@ as152.getNetwork('net0').enableRemoteAccess(ovpn)
 # We will use this peering relationship to peer all the ASes in an IX.
 # None of them will provide transit service for others. 
 
-ebgp.addRsPeers(100, [2, 3, 4])
-ebgp.addRsPeers(102, [2, 4])
-ebgp.addRsPeers(104, [3, 4])
-ebgp.addRsPeers(105, [2, 3])
+#ebgp.addRsPeers(100, [2, 3, 4])
+#ebgp.addRsPeers(102, [2, 4])
+#ebgp.addRsPeers(104, [3, 4])
+#ebgp.addRsPeers(105, [2, 3])
+
+#Removed RsPeers to be compatible with BGPsec implementation
+ebgp.addPrivatePeering(100, 2, 3, abRelationship = PeerRelationship.Peer)
+ebgp.addPrivatePeering(100, 2, 4, abRelationship = PeerRelationship.Peer)
+ebgp.addPrivatePeering(100, 3, 4, abRelationship = PeerRelationship.Peer)
+ebgp.addPrivatePeering(102, 2, 4, abRelationship = PeerRelationship.Peer)
+ebgp.addPrivatePeering(104, 3, 4, abRelationship = PeerRelationship.Peer)
+ebgp.addPrivatePeering(105, 2, 3, abRelationship = PeerRelationship.Peer)
 
 # To buy transit services from another autonomous system, 
 # we will use private peering  
-
 ebgp.addPrivatePeerings(100, [2],  [150, 151], PeerRelationship.Provider)
 ebgp.addPrivatePeerings(100, [3],  [150], PeerRelationship.Provider)
 
