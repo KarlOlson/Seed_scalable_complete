@@ -41,9 +41,9 @@ print("Setting up Path Validation Contract......")
 
 
 ##################### GET PEERS ############################
-cross_connects = sys.argv[2]
-print("PRINTING CROSS CONNECTS: ")
-print(cross_connects)
+# cross_connects = sys.argv[2]
+# print("PRINTING CROSS CONNECTS: ")
+# print(cross_connects)
 
 
 
