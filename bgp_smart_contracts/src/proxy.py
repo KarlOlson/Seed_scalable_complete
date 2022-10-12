@@ -233,9 +233,9 @@ def bgpchain_validate(segment, tx_sender):
 
 
 if __name__=='__main__':
-    sys.exit(0)
+    # sys.exit(0)
 # instantiate the netfilter queue
-    # nfqueue = NetfilterQueue()
+    nfqueue = NetfilterQueue()
  
     try:
         nfqueue.bind(QUEUE_NUM, pkt_in)
