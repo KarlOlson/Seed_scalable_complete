@@ -43,7 +43,7 @@ while read -sr expr; do {
 DockerCompilerFileTemplates['ganache'] = """\
 #!/bin/bash
 ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic & 
-sleep 2
+sleep 20
 cd /bgp_smart_contracts/src 
 python3 scripts/iana-contract-setup.py 0
 # python3 compile.py IANA
@@ -245,7 +245,7 @@ DockerCompilerFileTemplates['proxy'] = """\
 #!/bin/bash
 cd /bgp_smart_contracts/src/ 
 mkdir -p logs
-./wait_for_it.sh 10.100.0.100:8545 -t 25 -- python3 -u proxy.py {} {} > logs/$(date +%Y-%m-%d-%H:%M:%S) &
+./wait_for_it.sh 10.100.0.100:8545 -t 60 -- python3 -u proxy.py {} {} > logs/$(date +%Y-%m-%d-%H:%M:%S) &
 tcpdump -i any -n tcp port 179 -w pcaps/$(date +%Y-%m-%d-%H:%M:%S).pcap &
 echo 'Proxy setup ran. Listening for packets...'
 cd ..
@@ -487,7 +487,7 @@ class DockerImage(object):
 
 DefaultImages: List[DockerImage] = []
 
-DefaultImages.append(DockerImage('gregcusack/bgpchain:v2', []))
+DefaultImages.append(DockerImage('gregcusack/bgpchain:v3', []))
 
 class Docker(Compiler):
     """!
@@ -714,7 +714,7 @@ class Docker(Compiler):
 
         if self.__disable_images:
             self._log('disable-imaged configured, using base image.')
-            (image, _) = self.__images['gregcusack/bgpchain:v2']
+            (image, _) = self.__images['gregcusack/bgpchain:v3']
             return (image, nodeSoft - image.getSoftware())
 
         if self.__forced_image != None:

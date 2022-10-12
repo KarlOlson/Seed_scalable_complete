@@ -35,9 +35,9 @@ tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
 print("Transaction setup complete for: " + tx_sender_name)
 
 print("Setting up Path Validation Contract......")
-path_validation = SetupPathValidation.SetupPathValidation(int(sys.argv[1]))
-path_validation.compile_contract()
-path_validation.deploy_contract()
+# path_validation = SetupPathValidation.SetupPathValidation(int(sys.argv[1]))
+# path_validation.compile_contract()
+# path_validation.deploy_contract()
 
 
 ##################### GET PEERS ############################
