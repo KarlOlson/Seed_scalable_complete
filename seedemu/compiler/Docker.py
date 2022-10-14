@@ -42,7 +42,7 @@ while read -sr expr; do {
 #Optionally you can add --database.dbPath /ganache to the ganache command to make database...but not recommended.
 DockerCompilerFileTemplates['ganache'] = """\
 #!/bin/bash
-ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic & 
+ganache -a 200 -p 8545 -h 10.151.0.80 --deterministic & 
 sleep 2
 cd /bgp_smart_contracts/src 
 python3 compile.py 
@@ -243,7 +243,7 @@ fi
 DockerCompilerFileTemplates['proxy'] = """\
 #!/bin/bash
 cd /bgp_smart_contracts/src/ 
-./wait_for_it.sh 10.100.0.100:8545 -t 25 -- python3 -u proxy.py {} &
+./wait_for_it.sh 10.151.0.80:8545 -t 25 -- python3 -u proxy.py {} &
 echo 'Proxy setup ran. Listening for packets...'
 cd ..
 cd ..
@@ -1055,7 +1055,7 @@ class Docker(Compiler):
             start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
             
             
-        if node.getName() == "ix100":
+        if node.getName() == "host1":
                 dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
                 start_commands += 'chmod +x /ganache.sh\n'
                 special_commands += '/ganache.sh\n'
