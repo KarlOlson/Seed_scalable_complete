@@ -145,7 +145,7 @@ def pkt_in(packet):
                         pass
                     else:
                         print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization, Sending Notification...")
-                        # craft_negative_response_packet(pkt)
+                        craft_negative_response_packet(pkt)
                         packet.drop() #Drops original packet without forwarding
                 print ("All Advertised ASN's have passed check")
 

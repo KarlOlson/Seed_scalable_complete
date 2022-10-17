@@ -45,6 +45,9 @@ DockerCompilerFileTemplates['ganache'] = """\
 ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic & 
 sleep 20
 cd /bgp_smart_contracts/src 
+mkdir pcaps
+tcpdump -i any -n tcp port 8545 -w pcaps/blockchain-$(date +%Y-%m-%d-%H:%M:%S).pcap -Z root &
+tcpdump -i any -n tcp port 179 -w pcaps/bgp-$(date +%Y-%m-%d-%H:%M:%S).pcap -Z root &
 python3 scripts/iana-contract-setup.py 0
 # python3 compile.py IANA
 # sleep 2 
