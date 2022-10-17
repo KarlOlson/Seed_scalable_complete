@@ -181,7 +181,8 @@ def pkt_in(packet):
             #     print("Path is not valid!")
             #     craft_negative_response_packet(pkt)
         except: 
-            print("bgp update error")
+            print("bgp msg other")
+            packet.accept()
             pass
     else:
         packet.accept()
