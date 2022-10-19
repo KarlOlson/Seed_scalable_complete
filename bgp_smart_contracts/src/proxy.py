@@ -146,8 +146,11 @@ def pkt_in(packet):
                         pass
                     else:
                         print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization, Sending Notification...")
+                        print("crafting negative response pkt")
                         craft_negative_response_packet(pkt)
+                        print("send negative response. about to drop packet")
                         packet.drop() #Drops original packet without forwarding
+                        print("packet dropped. setting flag")
                         packet_dropped = True
                 print ("All Advertised ASN's have passed check")
 
@@ -165,10 +168,14 @@ def pkt_in(packet):
                 #     else:
                 #         print("added advertisement")
                 if not packet_dropped:
+                    print("packet not dropped. accepting")
                     packet.accept()
+                    print("packet accepted after not dropped")
             else:
                 print("Not a new neighbor path announcement")
+                print("packet not dropped. accepting")
                 packet.accept()
+                print("packet accepted in else")
 
             # """
             # TODO: after originating AS origin validate, validate BGP AS path 
@@ -188,10 +195,13 @@ def pkt_in(packet):
             # packet.accept()
             pass
     else:
+        print("else. packet accept")
         packet.accept()
+        print("else. packet accepted")
 
 
 def craft_negative_response_packet(pkt):
+    print("in craft negative response")
     #packet = Ethernet / IP Layer / TCP Layer / BGP Header / BGP payload
     ether=Ether()
     ip = IP(src=pkt[IP].dst, dst=pkt[IP].src)
@@ -200,7 +210,9 @@ def craft_negative_response_packet(pkt):
     bgp_note= BGPNotification(error_code=3, error_subcode=6) #code 3, subcode 6 = invalid origin attrib. Made-up from avail codes. No real meaning.
     packet_resp= ether / ip / tcp / bgp_hdr / bgp_note # assemble packet
     #packet_resp.show()
+    print("sending negative response")
     sendp(packet_resp)
+    print("sent negative response")
   
 #Chain check function. Needs to be updated with smart contract calls.  
 def bgpchain_validate(segment, tx_sender):
