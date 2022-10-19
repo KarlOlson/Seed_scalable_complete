@@ -118,7 +118,7 @@ def outgoing_packet():
 def get_datetime():
     return datetime.datetime.now()
 
-# old_print = print
+old_print = print
 # def ts_print(*args, **kwargs):
 #     old_print(datetime.datetime.now(), *args, **kwargs)
 
@@ -127,7 +127,7 @@ def get_datetime():
 def pkt_in(packet):
     local_index = global_index.incr_index()
     # local_index = incr_index()
-    old_print = print
+    # old_print = print
 
     def ts_print(*args, **kwargs):
         old_print(str(datetime.datetime.now()) + "--" + str(local_index), *args, **kwargs)
