@@ -17,22 +17,19 @@ import copy
 import Classes.SetupPathValidation as SetupPathValidation
 import threading
 
-lock = threading.Lock()
-index = 0
+class Index():
+    def __init__(self):
+        self.index = 0
+        self.lock = threading.Lock()
+    
+    def incr_index(self):
+        self.lock.acquire()
+        self.index = self.index + 1
+        val = self.index
+        self.lock.release()
+        return val
 
-def incr_index():
-    lock.acquire()
-    index = index + 1
-    val = index
-    lock.release()
-    return val
-
-def get_index():
-    lock.acquire()
-    val = index
-    lock.release()
-    return val
-
+global_index = None
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
@@ -128,7 +125,8 @@ def get_datetime():
 # print = ts_print
 
 def pkt_in(packet):
-    local_index = incr_index()
+    local_index = global_index.incr_index()
+    # local_index = incr_index()
     old_print = print
 
     def ts_print(*args, **kwargs):
@@ -277,6 +275,7 @@ def bgpchain_validate(segment, tx_sender):
 
 
 if __name__=='__main__':
+    global_index = Index() 
     # sys.exit(0)
 # instantiate the netfilter queue
     nfqueue = NetfilterQueue()
