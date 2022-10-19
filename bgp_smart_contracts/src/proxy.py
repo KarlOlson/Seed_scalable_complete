@@ -13,6 +13,7 @@ from Utils.Utils import *
 from ipaddress import IPv4Address
 import os, sys
 import datetime
+import copy
 import Classes.SetupPathValidation as SetupPathValidation
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
@@ -147,7 +148,7 @@ def pkt_in(packet):
                     else:
                         print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization, Sending Notification...")
                         print("crafting negative response pkt")
-                        craft_negative_response_packet(pkt)
+                        # craft_negative_response_packet(pkt)
                         print("send negative response. about to drop packet")
                         packet.drop() #Drops original packet without forwarding
                         print("packet dropped. setting flag")
@@ -202,6 +203,7 @@ def pkt_in(packet):
 
 def craft_negative_response_packet(pkt):
     print("in craft negative response")
+    
     #packet = Ethernet / IP Layer / TCP Layer / BGP Header / BGP payload
     ether=Ether()
     ip = IP(src=pkt[IP].dst, dst=pkt[IP].src)
