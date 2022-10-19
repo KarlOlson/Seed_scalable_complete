@@ -152,9 +152,9 @@ def pkt_in(packet):
                 # """
                 # TODO: fix below. check if we are creating a new advertisement or passing on a new one. add advertisement to our contract
                 # """
-                if str(pkt[IP].src) == get_ip_address(interface):
-                    #outgoing packet
-                    res = add_to_advertisement_contract(pkt)
+                # if str(pkt[IP].src) == get_ip_address(interface):
+                #     #outgoing packet
+                #     res = add_to_advertisement_contract(pkt)
 
                 # if outgoing_packet():
                 #     res = add_to_advertisement_contract()
