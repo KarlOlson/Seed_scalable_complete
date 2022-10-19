@@ -117,6 +117,7 @@ def pkt_in(packet):
         # if pkt[BGPHeader].type == 2: #Check if packet has a BGPHeader and if it is of type==2 (BGPUpdate). 
         #     print("rx BGP Update pkt")
         # packet.accept()
+    
     if (str(pkt.summary()).find('BGPHeader') > 0) and (pkt[BGPHeader].type == 2):
         print("rx BGP Update pkt")
         try:
@@ -180,8 +181,8 @@ def pkt_in(packet):
             # else:
             #     print("Path is not valid!")
             #     craft_negative_response_packet(pkt)
-        except: 
-            print("bgp msg other")
+        except Exception as e: 
+            print("bgp msg other: " + repr(e))
             # packet.accept()
             pass
     else:
