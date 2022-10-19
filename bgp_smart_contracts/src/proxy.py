@@ -15,6 +15,24 @@ import os, sys
 import datetime
 import copy
 import Classes.SetupPathValidation as SetupPathValidation
+import threading
+
+lock = threading.lock()
+index = 0
+
+def incr_index():
+    lock.acquire()
+    index = index + 1
+    val = index
+    lock.release()
+    return val
+
+def get_index():
+    lock.acquire()
+    val = index
+    lock.release()
+    return val
+
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
@@ -103,13 +121,21 @@ def outgoing_packet():
 def get_datetime():
     return datetime.datetime.now()
 
-old_print = print
-def ts_print(*args, **kwargs):
-    old_print(datetime.datetime.now(), *args, **kwargs)
+# old_print = print
+# def ts_print(*args, **kwargs):
+#     old_print(datetime.datetime.now(), *args, **kwargs)
 
-print = ts_print
+# print = ts_print
 
 def pkt_in(packet):
+    local_index = incr_index()
+    old_print = print
+
+    def ts_print(*args, **kwargs):
+        old_print(str(datetime.datetime.now()) + "--" + str(local_index), *args, **kwargs)
+
+    print = ts_print
+
     print("rx packet")
     pkt = IP(packet.get_payload())
     print(str(pkt.summary()))
