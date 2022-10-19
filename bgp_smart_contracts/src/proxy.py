@@ -177,6 +177,7 @@ def pkt_in(packet):
                         packet.drop() #Drops original packet without forwarding
                         print("packet dropped. setting flag")
                         packet_dropped = True
+                        break # stop looping
                 print ("All Advertised ASN's have passed check")
 
                 # """
