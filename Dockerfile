@@ -13,7 +13,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 install eth-brownie Flask scapy flask-restful
 RUN pip3 install eth-utils
 RUN ls
-RUN pwd
+RUN echo "hello"
 RUN git clone --depth 1 --filter=blob:none -b ftr-add-path-validation  https://github.com/KarlOlson/Seed_scalable_complete/
 WORKDIR /Seed_scalable_complete
 RUN git sparse-checkout set bgp_smart_contracts

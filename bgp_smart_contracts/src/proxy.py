@@ -182,7 +182,7 @@ def pkt_in(packet):
             #     craft_negative_response_packet(pkt)
         except: 
             print("bgp msg other")
-            packet.accept()
+            # packet.accept()
             pass
     else:
         packet.accept()
