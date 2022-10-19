@@ -17,7 +17,7 @@ import copy
 import Classes.SetupPathValidation as SetupPathValidation
 import threading
 
-lock = threading.lock()
+lock = threading.Lock()
 index = 0
 
 def incr_index():
