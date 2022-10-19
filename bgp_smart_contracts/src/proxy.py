@@ -117,7 +117,7 @@ def pkt_in(packet):
         # if pkt[BGPHeader].type == 2: #Check if packet has a BGPHeader and if it is of type==2 (BGPUpdate). 
         #     print("rx BGP Update pkt")
         # packet.accept()
-    
+    packet_dropped = False
     if (str(pkt.summary()).find('BGPHeader') > 0) and (pkt[BGPHeader].type == 2):
         print("rx BGP Update pkt")
         try:
@@ -148,6 +148,7 @@ def pkt_in(packet):
                         print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization, Sending Notification...")
                         craft_negative_response_packet(pkt)
                         packet.drop() #Drops original packet without forwarding
+                        packet_dropped = True
                 print ("All Advertised ASN's have passed check")
 
                 # """
@@ -163,7 +164,8 @@ def pkt_in(packet):
                 #         print("failed to add advertisement")
                 #     else:
                 #         print("added advertisement")
-                packet.accept()
+                if not packet_dropped:
+                    packet.accept()
             else:
                 print("Not a new neighbor path announcement")
                 packet.accept()
