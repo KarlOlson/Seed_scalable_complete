@@ -137,7 +137,7 @@ def pkt_in(packet):
     print("rx packet")
     pkt = IP(packet.get_payload())
     # print(str(pkt.summary()))
-    print(packet)
+    print(packet.show())
     # print("full packet show: " + str(packet))
     # if (str(pkt.summary()).find('BGPHeader') > 0):
     #     print("rx BGP packet")
