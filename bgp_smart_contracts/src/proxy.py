@@ -136,7 +136,9 @@ def pkt_in(packet):
 
     print("rx packet")
     pkt = IP(packet.get_payload())
-    print(str(pkt.summary()))
+    # print(str(pkt.summary()))
+    print("pkt payload show:" + str(pkt))
+    print("full packet show: " + str(packet))
     # if (str(pkt.summary()).find('BGPHeader') > 0):
     #     print("rx BGP packet")
         # if pkt[BGPHeader].type == 2: #Check if packet has a BGPHeader and if it is of type==2 (BGPUpdate). 
