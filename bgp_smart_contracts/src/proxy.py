@@ -216,6 +216,10 @@ def pkt_in(packet):
             # else:
             #     print("Path is not valid!")
             #     craft_negative_response_packet(pkt)
+        except IndexError as ie:
+            print("index error. diff type of bgp announcement. accept packet. error: " + repr(ie))
+            packet.accept()
+            print("accepted other bgp type packet")
         except Exception as e: 
             print("bgp msg other: " + repr(e))
             # packet.accept()
