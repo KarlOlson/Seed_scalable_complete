@@ -106,6 +106,11 @@ You can use SEED to build a terraform project and then deploy that to google clo
 ### Terraform Issues:
 1. If you deploy the terraform to the same project more than once, there is an error about some conflicting network information already existing for swarm deployment. I cannot figure out what this is (after deleting everything within the project). I have to start a new project (and create a new credential) each time I deploy. Not a big issue as you will likely clear out a project anyway to prevent recurring billing charges....but can be annoying if doing quick tests. Have yet to ID/solve conflict.
 
+### Good Commands To Know:
+1. scapy: pkt.show() - Shows packet information in pretty print format
+2. scapy: pkt.command() - Shows packet information in order of what commands you would use to get to specific data
+3. docker: docker cp <containerId>:/file/path/within/container /host/path/target - copies file form container to local host
+4. docker: docker container exec -it <containerId> /bin/zsh
 
 ## License
 
