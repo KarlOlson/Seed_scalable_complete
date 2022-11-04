@@ -155,19 +155,32 @@ def nlri_asn_check(cmd, pkt):
            asn=eval(cmd).path_attr[1].attribute.segments[-1].segment_length
         #nlri_lst=copy.deepcopy(eval(cmd).nlri) 
         print('ASN is: '+str(asn) + ' Checking prefixes:....')
+        print(eval(cmd).nlri)
         num=0
         for item in eval(cmd).nlri:  
-            segment=[asn, eval(cmd).nlri[num].prefix.split('/')[0], eval(cmd).nlri[num].prefix.split('/')[1], "Internal"]   
+            segment=[asn, eval(cmd).nlri[num].prefix.split('/')[0], eval(cmd).nlri[num].pref>
             check=bgpchain_validate(segment, tx_sender)
-            #print ('Placeholder evaluation check for: ' + str(adv_segment[0]) + ' ' + str(adv_segment[1]) +' ' +str(adv_segment[2])) ###replace with blockchain validation code.
+            #print ('Placeholder evaluation check for: ' + str(adv_segment[0]) + ' ' + str(a>
             #check='Authorized'
+            print
             if check =='Authorized':
                num+=1
                pass
-            else:#working on this section to get working right
-               del eval(cmd).nlri[num].prefix
-               if len(eval(cmd).nlri[num]) == 0:
-                  eval(cmd).nlri[0].prefix.append('0.0.0.0/0')
+            else:
+               print('deleting prefix...')
+               eval(cmd).nlri[num].prefix = b'0.0.0.0/0'
+               print (eval(cmd).nlri)
+               num+=1
+              # if len(eval(cmd).nlri) == 1:
+               #   eval(cmd).nlri[0].prefix ='0.0.0.0/0'
+                #  print(eval(cmd).nlri)
+
+        #eval(cmd).nlri=nlri_lst
+        #return eval(cmd)
+    else:
+        print('Segment was a route withdrawl')
+        return
+        #return eval(cmd)
 
 
 
