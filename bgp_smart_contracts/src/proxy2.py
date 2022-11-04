@@ -168,7 +168,7 @@ def nlri_asn_check(cmd, pkt):
                pass
             else:
                print('deleting prefix...')
-               eval(cmd).nlri[num].prefix = b'0.0.0.0/0'
+               eval(cmd).nlri[num].prefix = '0.0.0.0/0'
                print (eval(cmd).nlri)
                num+=1
               # if len(eval(cmd).nlri) == 1:
