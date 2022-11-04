@@ -185,7 +185,12 @@ def pkt_in(packet):
                 print ("All Advertised ASN's have been checked")
                 if packet_modified:
                     print("packet modified. forwarding modified packet")
-                    packet.set_payload(pkt)
+                    print("modified packet: ") 
+                    print(pkt.show())
+                    print("modified packet bytes: ")
+                    print(bytes(pkt))
+                    print("setting modified packet payload")
+                    packet.set_payload(bytes(pkt))
                 print("accepting packet")
                 packet.accept()
             else:
