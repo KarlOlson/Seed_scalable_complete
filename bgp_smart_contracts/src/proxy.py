@@ -146,7 +146,7 @@ def pkt_in(packet):
         # if pkt[BGPHeader].type == 2: #Check if packet has a BGPHeader and if it is of type==2 (BGPUpdate). 
         #     print("rx BGP Update pkt")
         # packet.accept()
-    packet_dropped = False
+    packet_modified = False
     if (str(pkt.summary()).find('BGPHeader') > 0) and (pkt[BGPHeader].type == 2):
         print("rx BGP Update pkt")
         try:
@@ -175,51 +175,24 @@ def pkt_in(packet):
                         pass
                     else:
                         print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization, Sending Notification...")
-                        print("crafting negative response pkt")
-                        # craft_negative_response_packet(pkt)
-                        print("send negative response. about to drop packet")
-                        packet.drop() #Drops original packet without forwarding
-                        print("packet dropped. setting flag")
-                        packet_dropped = True
+                        print("about to modify packet")
+                        edit_packet(pkt)
+                        print('packet modified')
+                        # packet.drop() #Drops original packet without forwarding
+                        print("packet modified. setting flag")
+                        packet_modified = True
                         break # stop looping
-                print ("All Advertised ASN's have passed check")
-
-                # """
-                # TODO: fix below. check if we are creating a new advertisement or passing on a new one. add advertisement to our contract
-                # """
-                # if str(pkt[IP].src) == get_ip_address(interface):
-                #     #outgoing packet
-                #     res = add_to_advertisement_contract(pkt)
-
-                # if outgoing_packet():
-                #     res = add_to_advertisement_contract()
-                #     if res == "fail":
-                #         print("failed to add advertisement")
-                #     else:
-                #         print("added advertisement")
-                if not packet_dropped:
-                    print("packet not dropped. accepting")
-                    packet.accept()
-                    print("packet accepted after not dropped")
+                print ("All Advertised ASN's have been checked")
+                if packet_modified:
+                    print("packet modified. forwarding modified packet")
+                    packet.set_payload(bytes(pkt))
+                print("accepting packet")
+                packet.accept()
             else:
                 print("Not a new neighbor path announcement")
                 print("packet not dropped. accepting")
                 packet.accept()
                 print("packet accepted in else")
-
-            # """
-            # TODO: after originating AS origin validate, validate BGP AS path 
-            # """
-            # path_validation_result = validate_path(pkt)
-            # if path_validation_result == validatePathResult.pathVALID:
-            #     print("all paths valid, accept packet")
-            #     packet.accept()
-            # elif path_validation_result == validatePathResult.pathPnpVALID:
-            #     print("Path is PnP valid, accept")
-            #     packet.accept()
-            # else:
-            #     print("Path is not valid!")
-            #     craft_negative_response_packet(pkt)
         except IndexError as ie:
             print("index error. diff type of bgp announcement. accept packet. error: " + repr(ie))
             packet.accept()
@@ -232,23 +205,16 @@ def pkt_in(packet):
         print("else. packet accept")
         packet.accept()
         print("else. packet accepted")
-
-
-def craft_negative_response_packet(pkt):
-    print("in craft negative response")
     
-    #packet = Ethernet / IP Layer / TCP Layer / BGP Header / BGP payload
-    ether=Ether()
-    ip = IP(src=pkt[IP].dst, dst=pkt[IP].src)
-    tcp = TCP(sport=pkt[TCP].dport, dport=pkt[TCP].sport, seq=pkt[TCP].ack) #Alternative: tcp=TCP(dport=179) and leave rest alone.
-    bgp_hdr = BGPHeader(type=3, marker=pkt[BGPHeader].marker)
-    bgp_note= BGPNotification(error_code=3, error_subcode=6) #code 3, subcode 6 = invalid origin attrib. Made-up from avail codes. No real meaning.
-    packet_resp= ether / ip / tcp / bgp_hdr / bgp_note # assemble packet
-    #packet_resp.show()
-    print("sending negative response")
-    sendp(packet_resp)
-    print("sent negative response")
-  
+def edit_packet(pkt):
+    print("edit packet")
+    nlri = pkt[BGPUpdate].nlri[0].prefix
+    new_nlri = "10.150.10.10/24"
+    pkt[BGPUpdate].nlri[0].prefix = new_nlri
+    print("new pkt nlri: " + str(pkt[BGPUpdate].nlri[0].prefix))
+
+    # pkt[IP].dst = "
+
 #Chain check function. Needs to be updated with smart contract calls.  
 def bgpchain_validate(segment, tx_sender):
     print ("Validating segment.....")
@@ -271,7 +237,8 @@ def bgpchain_validate(segment, tx_sender):
         return "Authorized"
     else:
         print("Segment Validation Failed. Error: " + str(validationResult))
-        return False
+        # return False
+        return "Unauthorized"
  
 #def interface_check():
 #    if_list=[]
