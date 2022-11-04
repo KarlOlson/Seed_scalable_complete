@@ -65,9 +65,9 @@ def main(packet):
         pkt.show2()
         #new_len=pkt_final[IP].len
         print ('Original packet length: '+str(orig_len) + ' New packet length: ' +str(pkt_final[IP].len))
-        sendp(pkt_final)
+        packet.accept() # or would it be pkt.accept()?
     else:
-        pass
+        packet.accept()
         
 def pkt_assembler(header,payload):
     print('assembling packet')
