@@ -190,7 +190,7 @@ def pkt_in(packet):
                 packet.accept()
             else:
                 print("Not a new neighbor path announcement")
-                print("packet not dropped. accepting")
+                print("packet not modified. accepting")
                 packet.accept()
                 print("packet accepted in else")
         except IndexError as ie:
@@ -209,7 +209,7 @@ def pkt_in(packet):
 def edit_packet(pkt):
     print("edit packet")
     nlri = pkt[BGPUpdate].nlri[0].prefix
-    new_nlri = "10.150.10.10/24"
+    new_nlri = bytes("10.150.10.10/24")
     pkt[BGPUpdate].nlri[0].prefix = new_nlri
     print("new pkt nlri: " + str(pkt[BGPUpdate].nlri[0].prefix))
 
