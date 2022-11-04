@@ -185,7 +185,7 @@ def pkt_in(packet):
                 print ("All Advertised ASN's have been checked")
                 if packet_modified:
                     print("packet modified. forwarding modified packet")
-                    packet.set_payload(bytes(pkt))
+                    packet.set_payload(pkt)
                 print("accepting packet")
                 packet.accept()
             else:
@@ -209,9 +209,10 @@ def pkt_in(packet):
 def edit_packet(pkt):
     print("edit packet")
     nlri = pkt[BGPUpdate].nlri[0].prefix
-    print("type of nlri: " + str(type(nlri)))
-    new_nlri = "10.150.10.10/24".encode('utf-8')
-    print("type of new nlri: " + str(type(new_nlri)))
+    # print("type of nlri: " + str(type(nlri)))
+    # new_nlri = "10.150.10.10/24".encode('utf-8')
+    # print("type of new nlri: " + str(type(new_nlri)))
+    new_nlri = "10.150.10.10/24"
     pkt[BGPUpdate].nlri[0].prefix = new_nlri
     print("new pkt nlri: " + str(pkt[BGPUpdate].nlri[0].prefix))
 
