@@ -141,9 +141,11 @@ def bgp_update_checker(cmd_lst,pkt):
 def nlri_asn_check(cmd, pkt):
     print('conducting NLRI check....')
     print('checking: '+cmd)
+    #print(pkt.show())
     print('trying ASN Identification...')
-    print ('route withdrawl check: ' + str(eval(cmd).route_withdrawl_len)
-    if eval(cmd).withdrawn_routes_len == 0:
+    print(str(eval(cmd).withdrawn_routes_len))   
+    if ((eval(cmd).withdrawn_routes_len == 0) and (eval(cmd).path_attr_len != 0)):
+        print(pkt.show())
         print(str(eval(cmd).path_attr[1].attribute.segments[-1].segment_value))
         print('entering if statement')
         if len(eval(cmd).path_attr[1].attribute.segments[-1].segment_value) > 1:
@@ -153,21 +155,19 @@ def nlri_asn_check(cmd, pkt):
            asn=eval(cmd).path_attr[1].attribute.segments[-1].segment_length
         #nlri_lst=copy.deepcopy(eval(cmd).nlri) 
         print('ASN is: '+str(asn) + ' Checking prefixes:....')
-        for num in range(len(eval(cmd).nlri)):  
+        num=0
+        for item in eval(cmd).nlri:  
             segment=[asn, eval(cmd).nlri[num].prefix.split('/')[0], eval(cmd).nlri[num].prefix.split('/')[1], "Internal"]   
-            check=bgpchain_validate(segment, tx_sender)                  
+            check=bgpchain_validate(segment, tx_sender)
             #print ('Placeholder evaluation check for: ' + str(adv_segment[0]) + ' ' + str(adv_segment[1]) +' ' +str(adv_segment[2])) ###replace with blockchain validation code.
             #check='Authorized'
             if check =='Authorized':
+               num+=1
                pass
-            else:
-                eval(cmd).nlri[num].pop()
-        #eval(cmd).nlri=nlri_lst
-        #return eval(cmd)
-    else:
-        print('Segment was a route withdrawl')
-        return
-        #return eval(cmd)
+            else:#working on this section to get working right
+               del eval(cmd).nlri[num].prefix
+               if len(eval(cmd).nlri[num]) == 0:
+                  eval(cmd).nlri[0].prefix.append('0.0.0.0/0')
 
 
 
@@ -189,7 +189,7 @@ def bgpchain_validate(segment, tx_sender):
     print(str(validationResult))
     if validationResult==validatePrefixResult.prefixValid:
         print("Segment Validated.")
-        return "Authorized"
+        return 'Authorized'
     else:
         print("Segment Validation Failed. Error: " + str(validationResult))
         return False
