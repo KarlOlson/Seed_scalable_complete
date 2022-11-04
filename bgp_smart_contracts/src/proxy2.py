@@ -141,8 +141,9 @@ def bgp_update_checker(cmd_lst,pkt):
 def nlri_asn_check(cmd, pkt):
     print('conducting NLRI check....')
     print('checking: '+cmd)
-    print('trying ASN Identification...')   
-    try:
+    print('trying ASN Identification...')
+    print ('route withdrawl check: ' + str(eval(cmd).route_withdrawl_len)
+    if eval(cmd).route_withdrawl_len == 0:
         print(str(eval(cmd).path_attr[1].attribute.segments[-1].segment_value))
         print('entering if statement')
         if len(eval(cmd).path_attr[1].attribute.segments[-1].segment_value) > 1:
@@ -163,9 +164,9 @@ def nlri_asn_check(cmd, pkt):
                 eval(cmd).nlri[num].pop()
         #eval(cmd).nlri=nlri_lst
         #return eval(cmd)
-    except:
+    else:
         print('Segment was a route withdrawl')
-        pass
+        return
         #return eval(cmd)
 
 
