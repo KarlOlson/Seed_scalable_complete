@@ -155,8 +155,8 @@ def nlri_asn_check(cmd, pkt):
         for num in range(len(eval(cmd).nlri)):  
             segment=[asn, eval(cmd).nlri[num].prefix.split('/')[0], eval(cmd).nlri[num].prefix.split('/')[1], "Internal"]   
             check=bgpchain_validate(segment, tx_sender)                  
-            print ('Placeholder evaluation check for: ' + str(adv_segment[0]) + ' ' + str(adv_segment[1]) +' ' +str(adv_segment[2])) ###replace with blockchain validation code.
-            check='Authorized'
+            #print ('Placeholder evaluation check for: ' + str(adv_segment[0]) + ' ' + str(adv_segment[1]) +' ' +str(adv_segment[2])) ###replace with blockchain validation code.
+            #check='Authorized'
             if check =='Authorized':
                pass
             else:
