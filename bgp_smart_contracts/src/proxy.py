@@ -209,7 +209,9 @@ def pkt_in(packet):
 def edit_packet(pkt):
     print("edit packet")
     nlri = pkt[BGPUpdate].nlri[0].prefix
-    new_nlri = bytes("10.150.10.10/24")
+    print("type of nlri: " + str(type(nlri)))
+    new_nlri = "10.150.10.10/24".encode('utf-8')
+    print("type of new nlri: " + str(type(new_nlri)))
     pkt[BGPUpdate].nlri[0].prefix = new_nlri
     print("new pkt nlri: " + str(pkt[BGPUpdate].nlri[0].prefix))
 
