@@ -188,6 +188,9 @@ def pkt_in(packet):
                     print("modified packet: ") 
                     print(pkt.show())
                     print("modified packet bytes: ")
+                    bytes_load = pkt[BGPUpdate].path_attr[3][Raw].load
+                    pkt[BGPUpdate].path_attr[3][Raw].load = bytes_load.decode('utf-8')
+                    print("new load to string val: " + pkt[BGPUpdate].path_attr[3][Raw].load)
                     print(bytes(pkt))
                     print("setting modified packet payload")
                     packet.set_payload(bytes(pkt))
