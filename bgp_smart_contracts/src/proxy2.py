@@ -143,7 +143,7 @@ def nlri_asn_check(cmd, pkt):
     print('checking: '+cmd)
     print('trying ASN Identification...')
     print ('route withdrawl check: ' + str(eval(cmd).route_withdrawl_len)
-    if eval(cmd).route_withdrawl_len == 0:
+    if eval(cmd).withdrawn_routes_len == 0:
         print(str(eval(cmd).path_attr[1].attribute.segments[-1].segment_value))
         print('entering if statement')
         if len(eval(cmd).path_attr[1].attribute.segments[-1].segment_value) > 1:
