@@ -218,8 +218,8 @@ def edit_packet(pkt):
     b_pkt = bytearray(bytes(pkt))
     b_pkt[126:130] = new_nlri_bytes
     pkt_reconstructed = CookedLinux(bytes(b_pkt))
-    del pkt_reconstructed[IP].chksum
-    del pkt_reconstructed[TCP].chksum 
+    # del pkt_reconstructed[IP].chksum
+    # del pkt_reconstructed[TCP].chksum 
     pkt_reconstructed.show2()
     print("new pkt nlri: " + str(pkt_reconstructed[BGPUpdate].nlri[0].prefix))
     return pkt_reconstructed
