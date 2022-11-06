@@ -216,6 +216,9 @@ def edit_packet(pkt):
     p_hijack_bytes = bytearray(bytes(pkt))
     del p_hijack_bytes[126:131]
     pkt_reconstructed = CookedLinux(bytes(p_hijack_bytes))
+    print("convert back to bgp from bytes:")
+    pkt_reconstructed.show()
+    print("modify length of bgp packet")
     pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - 5
     pkt_reconstructed.show2()
     # new_nlri = BGPNLRI_IPv4(prefix="10.150.1.0/24")
