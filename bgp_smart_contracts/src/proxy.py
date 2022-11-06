@@ -176,7 +176,7 @@ def pkt_in(packet):
                     else:
                         print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization, Sending Notification...")
                         print("about to modify packet")
-                        edit_packet(pkt)
+                        pkt = edit_packet(pkt)
                         print('packet modified')
                         # packet.drop() #Drops original packet without forwarding
                         print("packet modified. setting flag")
@@ -188,9 +188,6 @@ def pkt_in(packet):
                     print("modified packet: ") 
                     print(pkt.show())
                     print("modified packet bytes: ")
-                    bytes_load = pkt[BGPUpdate].path_attr[3][Raw].load
-                    pkt[BGPUpdate].path_attr[3][Raw].load = str(bytes_load)
-                    print("new load to string val: " + pkt[BGPUpdate].path_attr[3][Raw].load)
                     print(bytes(pkt))
                     print("setting modified packet payload")
                     packet.set_payload(bytes(pkt))
@@ -216,15 +213,26 @@ def pkt_in(packet):
     
 def edit_packet(pkt):
     print("edit packet")
-    nlri = pkt[BGPUpdate].nlri[0].prefix
-    # print("type of nlri: " + str(type(nlri)))
-    # new_nlri = "10.150.10.10/24".encode('utf-8')
-    # print("type of new nlri: " + str(type(new_nlri)))
-    new_nlri = "10.150.10.10/24"
-    pkt[BGPUpdate].nlri[0].prefix = new_nlri
-    print("new pkt nlri: " + str(pkt[BGPUpdate].nlri[0].prefix))
+    new_nlri = BGPNLRI_IPv4(prefix="10.150.1.0/24")
+    new_nlri_bytes = bytes(new_nlri)
+    b_pkt = bytearray(bytes(pkt))
+    b_pkt[126:130] = new_nlri_bytes
+    pkt_reconstructed = CookedLinux(bytes(b_pkt))
+    del pkt_reconstructed[IP].chksum
+    del pkt_reconstructed[TCP].chksum 
+    pkt_reconstructed.show2()
+    print("new pkt nlri: " + str(pkt_reconstructed[BGPUpdate].nlri[0].prefix))
+    return pkt_reconstructed
 
-    # pkt[IP].dst = "
+    # nlri = pkt[BGPUpdate].nlri[0].prefix
+    # # print("type of nlri: " + str(type(nlri)))
+    # # new_nlri = "10.150.10.10/24".encode('utf-8')
+    # # print("type of new nlri: " + str(type(new_nlri)))
+    # new_nlri = "10.150.10.10/24"
+    # pkt[BGPUpdate].nlri[0].prefix = new_nlri
+    # print("new pkt nlri: " + str(pkt[BGPUpdate].nlri[0].prefix))
+
+    # # pkt[IP].dst = "
 
 #Chain check function. Needs to be updated with smart contract calls.  
 def bgpchain_validate(segment, tx_sender):
