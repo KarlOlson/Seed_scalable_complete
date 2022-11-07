@@ -47,7 +47,7 @@ class MutablePacket():
     def remove_nlri(self, nlri):
         nlri_bytes = bytes(nlri)
         print("len of nlri: " + str(len(nlri_bytes)))
-        pkt_byte_array = self.byte_array()
+        pkt_byte_array = bytearray(bytes(self.pkt))
         
         try: 
             index = pkt_byte_array.index(nlri_bytes)
