@@ -226,6 +226,9 @@ def edit_packet(pkt):
     pkt_reconstructed.show()
     print("modify length of bgp packet")
     pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - 5
+    del pkt_reconstructed[IP].chksum
+    del pkt_reconstructed[TCP].chksum 
+    pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - 5
     pkt_reconstructed.show2()
     # new_nlri = BGPNLRI_IPv4(prefix="10.150.1.0/24")
     # new_nlri_bytes = bytes(new_nlri)
