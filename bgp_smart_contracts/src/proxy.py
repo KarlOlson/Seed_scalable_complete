@@ -10,6 +10,7 @@ import socket
 import time
 from Classes.Account import Account
 from Utils.Utils import *
+from Classes.MutablePacket import MutablePacket
 from ipaddress import IPv4Address
 import os, sys
 import datetime
@@ -32,15 +33,6 @@ class Index():
 global_index = None
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
-
-interface='ix100'
-def get_ip_address(ifname):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    return socket.inet_ntoa(fcntl.ioctl(
-        s.fileno(),
-        0x8915,  # SIOCGIFADDR
-        struct.pack('256s', bytes(ifname[:15], 'utf-8'))
-    )[20:24])
 
 #####Synchronizes ASN with blockchain account data##################
 tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg. ACCOUNT151 we do this programmatically later in program
@@ -123,49 +115,43 @@ def pkt_in(packet):
 
     print("rx packet")
     pkt = IP(packet.get_payload())
+    m_pkt = MutablePacket(pkt)
     # TODO: wrap this pkt with an m_pkt class. can track packet modifications
     print(packet)
-    print(pkt.show())
+    print(m_pkt.show())
 
     packet_modified = False
-    if (str(pkt.summary()).find('BGPHeader') > 0) and (pkt[BGPHeader].type == 2):
+    if m_pkt.is_bgp_update(): # checks for both bgp packet and bgp update
         print("rx BGP Update pkt")
         try:
-            if pkt[BGPUpdate].path_attr[1].attribute.segments[0].segment_length == 1:
-                print ("    Destination IP = " + pkt[IP].dst) #Local AS
-                print ("    Source IP = " + pkt[IP].src) #Remote AS
-                print ("    BGP Segment AS = " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length)) #even though it says segment length, that field is used to announce the A>
-                print ("    BGP Segment Next Hop = " + str(pkt[BGPUpdate].path_attr[2].attribute.next_hop))
-                for count, nlri in enumerate(pkt[BGPUpdate].nlri):
+            if m_pkt.get_segment_length() == 1:
+                m_pkt.print_bgp_update_summary()
+                for count, nlri in enumerate(m_pkt.get_nlris()):
                     print("nlri count: " + str(count))
                     print ("BGP NLRI check: " + str(nlri.prefix))
+
                     # chain mutable list = [AS, Network Prefix, CIDR]
-                    adv_segment = [pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length, str(nlri.prefix).split('/')[0], str(nlri.prefix).split('/')[1], "Internal"]
-                    print ("Advertised Segment="+str(adv_segment))
-                    account_check=str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length)
-                    print ("validating advertisement for ASN: "+account_check)
+                    adv_segment = m_pkt.get_adv_segment(nlri)
+                    print ("Advertised Segment: " + str(m_pkt.get_adv_segment(nlri)))
+                    print ("validating advertisement for ASN: " + str(m_pkt.get_segment_asn()))
                     
                     validationResult = bgpchain_validate(adv_segment, tx_sender)
                     if validationResult == validatePrefixResult.prefixValid:
                         print("NLRI " + str(count) + " passed authorization...checking next ASN")
                     elif validationResult == validatePrefixResult.prefixNotRegistered:
-                        pkt = handle_invalid_advertisement(pkt, nlri, adv_segment, validationResult)
+                        handle_invalid_advertisement(m_pkt, nlri, validationResult)
                         print('packet modified')
-                        packet_modified = True
-                        # break # TODO: do not stop looping! we need to check all NLRI's
                     elif validationResult == validatePrefixResult.prefixOwnersDoNotMatch:
-                        pkt = handle_invalid_advertisement(pkt, nlri, adv_segment, validationResult)
+                        handle_invalid_advertisement(m_pkt, nlri, validationResult)
                         print('packet modified')
-                        packet_modified = True
-                        # break # TODO: do not stop looping! we need to check all NLRI's
                     else:
                         print("error. should never get here. received back unknown validationResult: " + str(validationResult))
                 print ("All Advertised ASN's have been checked")
-                if packet_modified:
+                if m_pkt.is_modified():
                     print("modified packet: ") 
-                    print(pkt.show())
+                    print(m_pkt.show())
                     print("setting modified packet payload")
-                    packet.set_payload(bytes(pkt))
+                    packet.set_payload(m_pkt.bytes())
                 packet.accept()
             else:
                 print("Not a new neighbor path announcement")
@@ -181,46 +167,52 @@ def pkt_in(packet):
     else:
         packet.accept()
     
-def handle_invalid_advertisement(pkt, nlri, adv_segment, validationResult):
-    print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization. [" + str(validationResult) + "]")
-    modified_packet = remove_invalid_nlri_from_packet(pkt, nlri, adv_segment)
-    print('packet modified')
-    return modified_packet
+def handle_invalid_advertisement(m_pkt, nlri, validationResult):
+    print ("AS " + str(m_pkt.get_segment_asn()) + " Failed Authorization. [" + str(validationResult) + "]")
+    # modified_packet = 
+    remove_invalid_nlri_from_packet(m_pkt, nlri)
+    # print('packet modified')
+    # return modified_packet
 
 
-def remove_invalid_nlri_from_packet(pkt, nlri, adv_segment):
-    print("edit packet. bytes:")
-    print(bytes(pkt))
-    nlri_hijack_bytes = bytes(nlri)
-    print('nlri to remove: ' + str(nlri_hijack_bytes))
-    print(nlri.show())
-    print("len of nlri: " + str(len(bytes(nlri))))
-    print ("Advertised Segment="+str(adv_segment))
-    p_hijack_bytes = bytearray(bytes(pkt))
-    print("pkt byte array:")
-    print(p_hijack_bytes)
-    print("byte array length: " + str(len(p_hijack_bytes)))
+def remove_invalid_nlri_from_packet(m_pkt, nlri):
+    m_pkt.remove_nlri(nlri)
+    if m_pkt.is_modified():
+        print("packet modified")
+    else:
+        print("ERROR: packet modification failed")
 
-    try:
-        index = p_hijack_bytes.index(nlri_hijack_bytes)
-        print("start index of nlri to remove: " + str(index))
+    # print("edit packet. bytes:")
+    # print(m_pkt.bytes())
+    # nlri_hijack_bytes = bytes(nlri)
+    # print('nlri to remove: ' + str(nlri_hijack_bytes))
+    # print(nlri.show())
+    # print("len of nlri: " + str(len(nlri_hijack_bytes)))
+    # p_hijack_bytes = m_pkt.byte_array()
+    # print("pkt byte array:")
+    # print(p_hijack_bytes)
+    # print("byte array length: " + str(len(p_hijack_bytes)))
+
+    # try:
+    #     index = p_hijack_bytes.index(nlri_hijack_bytes)
+    #     print("start index of nlri to remove: " + str(index))
         
-        # remove the nlri from the packet
-        del p_hijack_bytes[index:index+len(nlri_hijack_bytes)]
+    #     # remove the nlri from the packet
+    #     del p_hijack_bytes[index:index+len(nlri_hijack_bytes)]
 
-        pkt_reconstructed = IP(bytes(p_hijack_bytes))
-        print("modify length of bgp packet")
-        pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - len(nlri_hijack_bytes)
-        del pkt_reconstructed[IP].chksum
-        del pkt_reconstructed[TCP].chksum 
-        pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - len(nlri_hijack_bytes)
-        pkt_reconstructed.show2()
-    except ValueError as v:
-        print("Error. nlri not found in packet. this is weird: " + repr(v))
-        print("nlri not found:")
-        nlri.show()
+    #     pkt_reconstructed = IP(bytes(p_hijack_bytes))
+    #     print("modify length of bgp packet")
+    #     pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - len(nlri_hijack_bytes)
+    #     del pkt_reconstructed[IP].chksum
+    #     del pkt_reconstructed[TCP].chksum 
+    #     pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - len(nlri_hijack_bytes)
+    #     pkt_reconstructed.show2()
+    # except ValueError as v:
+    #     print("Error. nlri not found in packet. this is weird: " + repr(v))
+    #     print("nlri not found:")
+    #     nlri.show()
 
-    return pkt_reconstructed
+    # return pkt_reconstructed
 
 
 #Chain check function. Needs to be updated with smart contract calls.  
