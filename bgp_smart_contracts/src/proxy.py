@@ -119,16 +119,9 @@ def get_datetime():
     return datetime.datetime.now()
 
 old_print = print
-# def ts_print(*args, **kwargs):
-#     old_print(datetime.datetime.now(), *args, **kwargs)
-
-# print = ts_print
 
 def pkt_in(packet):
     local_index = global_index.incr_index()
-    # local_index = incr_index()
-    # old_print = print
-
     def ts_print(*args, **kwargs):
         old_print(str(datetime.datetime.now()) + "--" + str(local_index), *args, **kwargs)
 
@@ -136,16 +129,11 @@ def pkt_in(packet):
 
     print("rx packet")
     pkt = IP(packet.get_payload())
+    # TODO: wrap this pkt with an m_pkt class. can track packet modifications
     # print(str(pkt.summary()))
     print(packet)
-    print(pkt)
     print(pkt.show())
-    # print("full packet show: " + str(packet))
-    # if (str(pkt.summary()).find('BGPHeader') > 0):
-    #     print("rx BGP packet")
-        # if pkt[BGPHeader].type == 2: #Check if packet has a BGPHeader and if it is of type==2 (BGPUpdate). 
-        #     print("rx BGP Update pkt")
-        # packet.accept()
+
     packet_modified = False
     if (str(pkt.summary()).find('BGPHeader') > 0) and (pkt[BGPHeader].type == 2):
         print("rx BGP Update pkt")
@@ -155,49 +143,40 @@ def pkt_in(packet):
                 print ("    Source IP = " + pkt[IP].src) #Remote AS
                 print ("    BGP Segment AS = " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length)) #even though it says segment length, that field is used to announce the A>
                 print ("    BGP Segment Next Hop = " + str(pkt[BGPUpdate].path_attr[2].attribute.next_hop))
-                #print ("    BGP Segment NLRI = " + str(pkt[BGPUpdate].nlri[0].prefix))
-                #print ("End of BGP Update Packet")
-                # count = 0
                 for count, nlri in enumerate(pkt[BGPUpdate].nlri):
+                    print("nlri count: " + str(count))
                     print ("BGP NLRI check: " + str(nlri.prefix))
                     # chain mutable list = [AS, Network Prefix, CIDR]
                     adv_segment = [pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length, str(nlri.prefix).split('/')[0], str(nlri.prefix).split('/')[1], "Internal"]
                     print ("Advertised Segment="+str(adv_segment))
-			        #print ("try seg:" + str(adv_segment[1]))
-                    #call check on BGPchain to validate segment advertisement request
                     account_check=str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length)
                     print ("validating advertisement for ASN: "+account_check)
-                    check=bgpchain_validate(adv_segment, tx_sender)
-                    #print ("segment check = "+str(check))
-                    if check == 'Authorized':
+                    
+                    validationResult = bgpchain_validate(adv_segment, tx_sender)
+                    if validationResult == validatePrefixResult.prefixValid:
                         print("NLRI " + str(count) + " passed authorization...checking next ASN")
-                        # count +=1
-                        pass
-                    else:
-                        print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization, Sending Notification...")
-                        print("about to modify packet")
-                        pkt = edit_packet(pkt, nlri, adv_segment)
+                    elif validationResult == validatePrefixResult.prefixNotRegistered:
+                        pkt = handle_invalid_advertisement(pkt, nlri, adv_segment, validationResult)
                         print('packet modified')
-                        # packet.drop() #Drops original packet without forwarding
-                        print("packet modified. setting flag")
                         packet_modified = True
-                        break # stop looping
+                        break # TODO: do not stop looping! we need to check all NLRI's
+                    elif validationResult == validatePrefixResult.prefixOwnersDoNotMatch:
+                        pkt = handle_invalid_advertisement(pkt, nlri, adv_segment, validationResult)
+                        print('packet modified')
+                        packet_modified = True
+                        break # TODO: do not stop looping! we need to check all NLRI's
+                    else:
+                        print("error. should never get here. received back unknown validationResult: " + str(validationResult))
                 print ("All Advertised ASN's have been checked")
                 if packet_modified:
-                    print("packet modified. forwarding modified packet")
                     print("modified packet: ") 
                     print(pkt.show())
-                    print("modified packet bytes: ")
-                    print(bytes(pkt))
                     print("setting modified packet payload")
                     packet.set_payload(bytes(pkt))
-                print("accepting packet")
                 packet.accept()
             else:
                 print("Not a new neighbor path announcement")
-                print("packet not modified. accepting")
                 packet.accept()
-                print("packet accepted in else")
         except IndexError as ie:
             print("index error. diff type of bgp announcement. accept packet. error: " + repr(ie))
             packet.accept()
@@ -207,11 +186,16 @@ def pkt_in(packet):
             # packet.accept()
             pass
     else:
-        print("else. packet accept")
         packet.accept()
-        print("else. packet accepted")
     
-def edit_packet(pkt, nlri, adv_segment):
+def handle_invalid_advertisement(pkt, nlri, adv_segment, validationResult):
+    print ("AS " + str(pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length) + " Failed Authorization. [" + str(validationResult) + "]")
+    modified_packet = remove_invalid_nlri_from_packet(pkt, nlri, adv_segment)
+    print('packet modified')
+    return modified_packet
+
+
+def remove_invalid_nlri_from_packet(pkt, nlri, adv_segment):
     print("edit packet. bytes:")
     print(bytes(pkt))
     nlri_hijack_bytes = bytes(nlri)
@@ -226,57 +210,25 @@ def edit_packet(pkt, nlri, adv_segment):
 
     try:
         index = p_hijack_bytes.index(nlri_hijack_bytes)
-        print(index)
+        print("start index of nlri to remove: " + str(index))
         
-        # delete the nlri from the packet
+        # remove the nlri from the packet
         del p_hijack_bytes[index:index+len(nlri_hijack_bytes)]
 
         pkt_reconstructed = IP(bytes(p_hijack_bytes))
         print("modify length of bgp packet")
-        pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - 5
+        pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - len(nlri_hijack_bytes)
         del pkt_reconstructed[IP].chksum
         del pkt_reconstructed[TCP].chksum 
-        pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - 5
+        pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - len(nlri_hijack_bytes)
         pkt_reconstructed.show2()
     except ValueError as v:
         print("Error. nlri not found in packet. this is weird: " + repr(v))
         print("nlri not found:")
         nlri.show()
 
-
-
-    # print("bytes to remove: ")
-    # print(p_hijack_bytes[110:115])
-    # del p_hijack_bytes[110:115]
-    # pkt_reconstructed = IP(bytes(p_hijack_bytes))
-    # print("convert back to bgp from bytes:")
-    # pkt_reconstructed.show()
-    # print("modify length of bgp packet")
-    # pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - 5
-    # del pkt_reconstructed[IP].chksum
-    # del pkt_reconstructed[TCP].chksum 
-    # pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - 5
-    # pkt_reconstructed.show2()
-    # new_nlri = BGPNLRI_IPv4(prefix="10.150.1.0/24")
-    # new_nlri_bytes = bytes(new_nlri)
-    # b_pkt = bytearray(bytes(pkt))
-    # b_pkt[126:130] = new_nlri_bytes
-    # pkt_reconstructed = CookedLinux(bytes(b_pkt))
-    # del pkt_reconstructed[IP].chksum
-    # del pkt_reconstructed[TCP].chksum 
-    # pkt_reconstructed.show2()
-    # print("new pkt nlri: " + str(pkt_reconstructed[BGPUpdate].nlri[0].prefix))
     return pkt_reconstructed
 
-    # nlri = pkt[BGPUpdate].nlri[0].prefix
-    # # print("type of nlri: " + str(type(nlri)))
-    # # new_nlri = "10.150.10.10/24".encode('utf-8')
-    # # print("type of new nlri: " + str(type(new_nlri)))
-    # new_nlri = "10.150.10.10/24"
-    # pkt[BGPUpdate].nlri[0].prefix = new_nlri
-    # print("new pkt nlri: " + str(pkt[BGPUpdate].nlri[0].prefix))
-
-    # # pkt[IP].dst = "
 
 #Chain check function. Needs to be updated with smart contract calls.  
 def bgpchain_validate(segment, tx_sender):
@@ -288,30 +240,13 @@ def bgpchain_validate(segment, tx_sender):
     print (str(inSubnet))
     inASN = int(segment[0])
     print (str(inASN))
-    #print(type(inASN), inASN)
-    #print("tes")
-    # Validate the prefix<=>ASN mapping. Returns an enum.
-    #print ("testing tx_sender: "+str(tx_sender))
+
     print ("Checking segment: AS" + str(inASN)+ " , " + str(inIP) + "/" + str(inSubnet))
     validationResult = tx_sender.tx.sc_validatePrefix(int(inIP), inSubnet, inASN)
     print(str(validationResult))
-    if validationResult==validatePrefixResult.prefixValid:
-        print("Segment Validated.")
-        return "Authorized"
-    else:
-        print("Segment Validation Failed. Error: " + str(validationResult))
-        # return False
-        return "Unauthorized"
- 
-#def interface_check():
-#    if_list=[]
-#    for interface in get_if_list():
-#        if interface =="lo" or interface=="dummy0":
-#            pass
-#       else:
-#            if_list.append(interface)
-#    return if_list
+    return validationResult
 
+ 
 
 if __name__=='__main__':
     global_index = Index() 
