@@ -56,12 +56,6 @@ print("Setting up Path Validation Contract......")
 # path_validation.deploy_contract()
 
 
-##################### GET PEERS ############################
-# cross_connects = sys.argv[2]
-# print("PRINTING CROSS CONNECTS: ")
-# print(cross_connects)
-
-
 
 ################Establishes local IPTABLES Rule to begin processing packets############
 QUEUE_NUM = 1
@@ -130,7 +124,6 @@ def pkt_in(packet):
     print("rx packet")
     pkt = IP(packet.get_payload())
     # TODO: wrap this pkt with an m_pkt class. can track packet modifications
-    # print(str(pkt.summary()))
     print(packet)
     print(pkt.show())
 
@@ -159,12 +152,12 @@ def pkt_in(packet):
                         pkt = handle_invalid_advertisement(pkt, nlri, adv_segment, validationResult)
                         print('packet modified')
                         packet_modified = True
-                        break # TODO: do not stop looping! we need to check all NLRI's
+                        # break # TODO: do not stop looping! we need to check all NLRI's
                     elif validationResult == validatePrefixResult.prefixOwnersDoNotMatch:
                         pkt = handle_invalid_advertisement(pkt, nlri, adv_segment, validationResult)
                         print('packet modified')
                         packet_modified = True
-                        break # TODO: do not stop looping! we need to check all NLRI's
+                        # break # TODO: do not stop looping! we need to check all NLRI's
                     else:
                         print("error. should never get here. received back unknown validationResult: " + str(validationResult))
                 print ("All Advertised ASN's have been checked")
