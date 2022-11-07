@@ -125,6 +125,7 @@ def pkt_in(packet):
         print("rx BGP Update pkt")
         try:
             if m_pkt.get_segment_length() == 1:
+                print("rx BGP Update pkt with single segment")
                 m_pkt.print_bgp_update_summary()
                 for count, nlri in enumerate(m_pkt.get_nlris()):
                     print("nlri count: " + str(count))

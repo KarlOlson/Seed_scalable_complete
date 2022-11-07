@@ -1,3 +1,5 @@
+from scapy.all import *
+load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
 
 class MutablePacket():
@@ -11,12 +13,12 @@ class MutablePacket():
         return False
     
     def is_bgp_update(self):
-        if (self.is_bgp() and self.packet()[BGPHeader].type == 2):
+        if (self.is_bgp() and self.pkt[BGPHeader].type == 2):
             return True
         return False
 
     def get_segment_length(self):
-        return self.packet()[BGPUpdate].path_attr[1].attribute.segments[0].segment_length
+        return self.pkt[BGPUpdate].path_attr[1].attribute.segments[0].segment_length
 
     def get_segment_asn(self):
         return self.pkt[BGPUpdate].path_attr[1].attribute.segments[1].segment_length
