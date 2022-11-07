@@ -43,7 +43,7 @@ while read -sr expr; do {
 DockerCompilerFileTemplates['ganache'] = """\
 #!/bin/bash
 ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic & 
-sleep 20
+sleep 5
 cd /bgp_smart_contracts/src 
 mkdir pcaps
 tcpdump -i any -n tcp port 8545 -w pcaps/blockchain-$(date +%Y-%m-%d-%H:%M:%S).pcap -Z root &
