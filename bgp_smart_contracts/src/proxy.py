@@ -166,13 +166,11 @@ def pkt_in(packet):
             pass
     else:
         packet.accept()
-    
+
+
 def handle_invalid_advertisement(m_pkt, nlri, validationResult):
     print ("AS " + str(m_pkt.get_segment_asn()) + " Failed Authorization. [" + str(validationResult) + "]")
-    # modified_packet = 
     remove_invalid_nlri_from_packet(m_pkt, nlri)
-    # print('packet modified')
-    # return modified_packet
 
 
 def remove_invalid_nlri_from_packet(m_pkt, nlri):
@@ -181,38 +179,6 @@ def remove_invalid_nlri_from_packet(m_pkt, nlri):
         print("packet modified")
     else:
         print("ERROR: packet modification failed")
-
-    # print("edit packet. bytes:")
-    # print(m_pkt.bytes())
-    # nlri_hijack_bytes = bytes(nlri)
-    # print('nlri to remove: ' + str(nlri_hijack_bytes))
-    # print(nlri.show())
-    # print("len of nlri: " + str(len(nlri_hijack_bytes)))
-    # p_hijack_bytes = m_pkt.byte_array()
-    # print("pkt byte array:")
-    # print(p_hijack_bytes)
-    # print("byte array length: " + str(len(p_hijack_bytes)))
-
-    # try:
-    #     index = p_hijack_bytes.index(nlri_hijack_bytes)
-    #     print("start index of nlri to remove: " + str(index))
-        
-    #     # remove the nlri from the packet
-    #     del p_hijack_bytes[index:index+len(nlri_hijack_bytes)]
-
-    #     pkt_reconstructed = IP(bytes(p_hijack_bytes))
-    #     print("modify length of bgp packet")
-    #     pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - len(nlri_hijack_bytes)
-    #     del pkt_reconstructed[IP].chksum
-    #     del pkt_reconstructed[TCP].chksum 
-    #     pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - len(nlri_hijack_bytes)
-    #     pkt_reconstructed.show2()
-    # except ValueError as v:
-    #     print("Error. nlri not found in packet. this is weird: " + repr(v))
-    #     print("nlri not found:")
-    #     nlri.show()
-
-    # return pkt_reconstructed
 
 
 #Chain check function. Needs to be updated with smart contract calls.  
@@ -235,8 +201,7 @@ def bgpchain_validate(segment, tx_sender):
 
 if __name__=='__main__':
     global_index = Index() 
-    # sys.exit(0)
-# instantiate the netfilter queue
+    # instantiate the netfilter queue
     nfqueue = NetfilterQueue()
  
     try:

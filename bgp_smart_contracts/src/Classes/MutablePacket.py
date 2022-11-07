@@ -82,6 +82,3 @@ class MutablePacket():
     def show(self):
         return self.pkt.show()
 
-    
-
-    # def bgpchain_validate_advertisements(self):
