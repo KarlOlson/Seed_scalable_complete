@@ -219,9 +219,9 @@ def edit_packet(pkt):
     print(p_hijack_bytes)
     print("byte array length: " + str(len(p_hijack_bytes)))
     print("bytes to remove: ")
-    print(p_hijack_bytes[126:131])
-    del p_hijack_bytes[126:131]
-    pkt_reconstructed = CookedLinux(bytes(p_hijack_bytes))
+    print(p_hijack_bytes[110:115])
+    del p_hijack_bytes[110:115]
+    pkt_reconstructed = IP(bytes(p_hijack_bytes))
     print("convert back to bgp from bytes:")
     pkt_reconstructed.show()
     print("modify length of bgp packet")
