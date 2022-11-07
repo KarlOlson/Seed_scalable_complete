@@ -214,25 +214,49 @@ def pkt_in(packet):
 def edit_packet(pkt, nlri, adv_segment):
     print("edit packet. bytes:")
     print(bytes(pkt))
-    print('nlri to remove: ' + str(bytes(nlri)))
+    nlri_hijack_bytes = bytes(nlri)
+    print('nlri to remove: ' + str(nlri_hijack_bytes))
     print(nlri.show())
+    print("len of nlri: " + str(len(bytes(nlri))))
     print ("Advertised Segment="+str(adv_segment))
     p_hijack_bytes = bytearray(bytes(pkt))
-    print("byte array:")
+    print("pkt byte array:")
     print(p_hijack_bytes)
     print("byte array length: " + str(len(p_hijack_bytes)))
-    print("bytes to remove: ")
-    print(p_hijack_bytes[110:115])
-    del p_hijack_bytes[110:115]
-    pkt_reconstructed = IP(bytes(p_hijack_bytes))
-    print("convert back to bgp from bytes:")
-    pkt_reconstructed.show()
-    print("modify length of bgp packet")
-    pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - 5
-    del pkt_reconstructed[IP].chksum
-    del pkt_reconstructed[TCP].chksum 
-    pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - 5
-    pkt_reconstructed.show2()
+
+    try:
+        index = p_hijack_bytes.index(nlri_hijack_bytes)
+        print(index)
+        
+        # delete the nlri from the packet
+        del p_hijack_bytes[index:index+len(nlri_hijack_bytes)]
+
+        pkt_reconstructed = IP(bytes(p_hijack_bytes))
+        print("modify length of bgp packet")
+        pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - 5
+        del pkt_reconstructed[IP].chksum
+        del pkt_reconstructed[TCP].chksum 
+        pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - 5
+        pkt_reconstructed.show2()
+    except ValueError as v:
+        print("Error. nlri not found in packet. this is weird: " + repr(v))
+        print("nlri not found:")
+        nlri.show()
+
+
+
+    # print("bytes to remove: ")
+    # print(p_hijack_bytes[110:115])
+    # del p_hijack_bytes[110:115]
+    # pkt_reconstructed = IP(bytes(p_hijack_bytes))
+    # print("convert back to bgp from bytes:")
+    # pkt_reconstructed.show()
+    # print("modify length of bgp packet")
+    # pkt_reconstructed[BGPHeader].len = pkt_reconstructed[BGPHeader].len - 5
+    # del pkt_reconstructed[IP].chksum
+    # del pkt_reconstructed[TCP].chksum 
+    # pkt_reconstructed[IP].len = pkt_reconstructed[IP].len - 5
+    # pkt_reconstructed.show2()
     # new_nlri = BGPNLRI_IPv4(prefix="10.150.1.0/24")
     # new_nlri_bytes = bytes(new_nlri)
     # b_pkt = bytearray(bytes(pkt))
@@ -241,7 +265,7 @@ def edit_packet(pkt, nlri, adv_segment):
     # del pkt_reconstructed[IP].chksum
     # del pkt_reconstructed[TCP].chksum 
     # pkt_reconstructed.show2()
-    print("new pkt nlri: " + str(pkt_reconstructed[BGPUpdate].nlri[0].prefix))
+    # print("new pkt nlri: " + str(pkt_reconstructed[BGPUpdate].nlri[0].prefix))
     return pkt_reconstructed
 
     # nlri = pkt[BGPUpdate].nlri[0].prefix
