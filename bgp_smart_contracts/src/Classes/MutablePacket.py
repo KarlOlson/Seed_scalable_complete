@@ -62,6 +62,7 @@ class MutablePacket():
             del self.pkt[IP].chksum
             del self.pkt[TCP].chksum 
             self.pkt[IP].len = self.pkt[IP].len - len(nlri_bytes)
+            print("modified packet: ") 
             self.pkt.show2()
             self.set_modified()
         except ValueError as v:

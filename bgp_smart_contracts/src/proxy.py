@@ -120,7 +120,6 @@ def pkt_in(packet):
     print(packet)
     print(m_pkt.show())
 
-    packet_modified = False
     if m_pkt.is_bgp_update(): # checks for both bgp packet and bgp update
         print("rx BGP Update pkt")
         try:
@@ -141,16 +140,12 @@ def pkt_in(packet):
                         print("NLRI " + str(count) + " passed authorization...checking next ASN")
                     elif validationResult == validatePrefixResult.prefixNotRegistered:
                         handle_invalid_advertisement(m_pkt, nlri, validationResult)
-                        print('packet modified')
                     elif validationResult == validatePrefixResult.prefixOwnersDoNotMatch:
                         handle_invalid_advertisement(m_pkt, nlri, validationResult)
-                        print('packet modified')
                     else:
                         print("error. should never get here. received back unknown validationResult: " + str(validationResult))
                 print ("All Advertised ASN's have been checked")
                 if m_pkt.is_modified():
-                    print("modified packet: ") 
-                    print(m_pkt.show())
                     print("setting modified packet payload")
                     packet.set_payload(m_pkt.bytes())
                 packet.accept()
@@ -171,6 +166,7 @@ def pkt_in(packet):
 
 def handle_invalid_advertisement(m_pkt, nlri, validationResult):
     print ("AS " + str(m_pkt.get_segment_asn()) + " Failed Authorization. [" + str(validationResult) + "]")
+    print("modifying packet: ")
     remove_invalid_nlri_from_packet(m_pkt, nlri)
 
 
