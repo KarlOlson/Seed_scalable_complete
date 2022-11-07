@@ -43,12 +43,16 @@ while read -sr expr; do {
 DockerCompilerFileTemplates['ganache'] = """\
 #!/bin/bash
 ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic & 
-sleep 2
+sleep 20
 cd /bgp_smart_contracts/src 
-python3 compile.py 
-sleep 2 
-python3 deploy.py ACCOUNT0
-sleep 2
+mkdir pcaps
+tcpdump -i any -n tcp port 8545 -w pcaps/blockchain-$(date +%Y-%m-%d-%H:%M:%S).pcap -Z root &
+tcpdump -i any -n tcp port 179 -w pcaps/bgp-$(date +%Y-%m-%d-%H:%M:%S).pcap -Z root &
+python3 scripts/iana-contract-setup.py 0
+# python3 compile.py IANA
+# sleep 2 
+# python3 deploy.py ACCOUNT0 IANA
+# sleep 2
 python3 account_script.py 
 echo 'Ganache setup ran. Check Logs for details.'
 cd ..
@@ -243,7 +247,10 @@ fi
 DockerCompilerFileTemplates['proxy'] = """\
 #!/bin/bash
 cd /bgp_smart_contracts/src/ 
-./wait_for_it.sh 10.100.0.100:8545 -t 25 -- python3 proxy.py {} &
+mkdir -p logs
+./wait_for_it.sh 10.100.0.100:8545 -t 60 -- python3 -u proxy.py {} {} > logs/$(date +%Y-%m-%d-%H:%M:%S) &
+mkdir -p pcaps
+tcpdump -i any -n tcp port 179 -w pcaps/$(date +%Y-%m-%d-%H:%M:%S).pcap -Z root &
 echo 'Proxy setup ran. Listening for packets...'
 cd ..
 cd ..
@@ -484,7 +491,7 @@ class DockerImage(object):
 
 DefaultImages: List[DockerImage] = []
 
-DefaultImages.append(DockerImage('karlolson1/bgpchain:latest', []))
+DefaultImages.append(DockerImage('gregcusack/bgpchain:v3', []))
 
 class Docker(Compiler):
     """!
@@ -711,7 +718,7 @@ class Docker(Compiler):
 
         if self.__disable_images:
             self._log('disable-imaged configured, using base image.')
-            (image, _) = self.__images['karlolson1/bgpchain:latest']
+            (image, _) = self.__images['gregcusack/bgpchain:v3']
             return (image, nodeSoft - image.getSoftware())
 
         if self.__forced_image != None:
@@ -818,7 +825,7 @@ class Docker(Compiler):
             value = node.getAsn()
         )
         
-        DockerCompilerFileTemplates['proxy'].format(node.getAsn())
+        DockerCompilerFileTemplates['proxy'].format(node.getAsn(), node.getCrossConnects())
 
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
@@ -1061,7 +1068,7 @@ class Docker(Compiler):
                 special_commands += '/ganache.sh\n'
 
         elif "router" in node.getName():
-                dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'].format(node.getAsn()))
+                dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'].format(node.getAsn(), node.getCrossConnects()))
                 dockerfile += self._addFile('/bgp_smart_contracts/src/wait_for_it.sh', DockerCompilerFileTemplates['wait_for_it'])
                 start_commands += 'chmod +x /proxy.sh\n'
                 start_commands += 'chmod +x /bgp_smart_contracts/src/wait_for_it.sh\n'

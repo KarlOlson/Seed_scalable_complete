@@ -296,6 +296,9 @@ class Node(Printable, Registrable, Configurable, Vertex):
         for (peername, peerasn) in list(self.__xcs.keys()):
             peer: Node = None
 
+            print("greg - __xcs keys: ")
+            print(list(self.__xcs.keys))
+
             if reg.has(str(peerasn), 'rnode', peername): peer = reg.get(str(peerasn), 'rnode', peername)
             elif reg.has(str(peerasn), 'hnode', peername): peer = reg.get(str(peerasn), 'hnode', peername)
             else: assert False, 'as{}/{}: cannot xc to node as{}/{}: no such node'.format(self.getAsn(), self.getName(), peerasn, peername)

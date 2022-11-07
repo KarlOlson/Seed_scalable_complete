@@ -19,7 +19,7 @@ def main():
     msg_sender = Account(AccountType.MessageSender, msg_signer_namer)
     msg_sender.load_account_keys()
 
-    tx_sender.generate_transaction_object("IANA", "CONTRACT_ADDRESS")
+    tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
 
     # data to hash and sign
     data_types = ['uint32', 'address']

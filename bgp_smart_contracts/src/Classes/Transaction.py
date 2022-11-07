@@ -5,14 +5,20 @@ from Classes.Web3Obj import Web3Obj
 
 # in an ideal world, i think we should have: contract, transaction, tx_sender, msg_signer objects
 class Transaction():
-    def __init__(self, contract_name, contract_address_env=None):
+    def __init__(self, contract_name, contract_address_env=None, address_from_config=None):
         load_dotenv()
         self.w3 = Web3Obj.w3
         self.chain_id = Utils.load_chain_id()
         self.abi = Utils.get_contract_abi(contract_name) # ex: IANA
         
-        if contract_address_env:
-            self.contract_address = Utils.load_contract_address(contract_address_env) # ex: CONTRACT_ADDRESS
+        if contract_address_env and address_from_config: #contract address from yaml config
+            self.contract_address = contract_address_env
+            self.iana = self.w3.eth.contract(address=self.contract_address, abi=self.abi)
+        elif contract_address_env: # contract address is in env
+            self.contract_address = Utils.load_contract_address(contract_address_env) # ex: IANA_CONTRACT_ADDRESS
+            if not self.contract_address:
+                print("ERROR: contract with name: " + contract_address_env + " not found in .env. Exiting...")
+                sys.exit(-1)
             self.iana = self.w3.eth.contract(address=self.contract_address, abi=self.abi)
         else:
             # bytecode of contract for deploy
@@ -59,16 +65,15 @@ class Transaction():
     ############## CONTRACT TRANSACTIONS ################
     def deploy_smart_contract(self, tx_sender_nonce):
         """
-        Deploy smart contract  -> Creates transaction 
+        Deploy smart contract  -> Creates transaction
         """
         transaction = self.iana.constructor().buildTransaction({
             "gasPrice": self.w3.eth.gas_price,
-            "chainId": self.chain_id, 
-            "from": self.tx_sender_pub_key, 
+            "chainId": self.chain_id,
+            "from": self.tx_sender_pub_key,
             "nonce": tx_sender_nonce
         })
         return transaction
-    
 
     def sc_addASN(self, tx_sender_nonce, inASN, inAddress):
         """
@@ -141,3 +146,21 @@ class Transaction():
         Returns if prefix<=>ASN binding is valid
         """
         return validatePrefixResult(self.iana.functions.prefix_validatePrefix(inIP, inSubnet, inASN).call())
+
+    def sc_addAdvertisementToMyContract(self, tx_sender_nonce, inIp, inSubnet, inNextHop):
+        """
+        Add an advertisement to my own advertisement contract
+        """
+        transaction = self.iana.functions.addAdvertisement(inIp, inSubnet, inNextHop).buildTransaction({
+            "gasPrice": self.w3.eth.gas_price,
+            "chainId": self.chain_id,
+            "from": self.tx_sender_pub_key,
+            "nonce": tx_sender_nonce
+        })
+        return transaction
+
+    def sc_validateAdvertisement(self, inIp, inSubnet, inPrevHop):
+        """
+        Validate an advertisement received from downstream AS.
+        """
+        return validateAdvertisementResult(self.iana.functions.validateAdvertisement(inIp, inSubnet, inPrevHop).call())

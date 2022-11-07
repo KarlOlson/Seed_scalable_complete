@@ -20,7 +20,7 @@ abi = json.loads(
     )["output"]["abi"]
 
 #  call deploy.py Will get contract_address
-contract_address = os.getenv("CONTRACT_ADDRESS")
+contract_address = os.getenv("IANA_CONTRACT_ADDRESS")
 iana = w3.eth.contract(address=contract_address, abi=abi)
 
 base_message = Web3.soliditySha3(['uint32', 'address'], [13, my_address])

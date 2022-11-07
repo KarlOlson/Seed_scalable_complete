@@ -16,7 +16,7 @@ def main():
     tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
     tx_sender.load_account_keys()
 
-    tx_sender.generate_transaction_object("IANA", "CONTRACT_ADDRESS")
+    tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
 
     # generate contract transaction
     tx = tx_sender.tx.sc_removePrefix(tx_sender.get_nonce(), int(inIP), inSubnet)

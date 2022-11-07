@@ -18,12 +18,11 @@ def main():
     tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
     tx_sender.load_account_keys()
 
-    tx_sender.generate_transaction_object("IANA", "CONTRACT_ADDRESS")
+    tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
 
     # Validate the prefix<=>ASN mapping. Returns an enum.
     validationResult = tx_sender.tx.sc_validatePrefix(int(inIP), inSubnet, inASN)
     print(validationResult)
 
-    
 if __name__ == "__main__":
     main()
