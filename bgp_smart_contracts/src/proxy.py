@@ -212,8 +212,14 @@ def pkt_in(packet):
         print("else. packet accepted")
     
 def edit_packet(pkt):
-    print("edit packet")
+    print("edit packet. bytes:")
+    print(bytes(pkt))
     p_hijack_bytes = bytearray(bytes(pkt))
+    print("byte array:")
+    print(p_hijack_bytes)
+    print("byte array length: " + str(len(p_hijack_bytes)))
+    print("bytes to remove: ")
+    print(p_hijack_bytes[126:131])
     del p_hijack_bytes[126:131]
     pkt_reconstructed = CookedLinux(bytes(p_hijack_bytes))
     print("convert back to bgp from bytes:")
