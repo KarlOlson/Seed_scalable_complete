@@ -214,7 +214,7 @@ def pkt_in(packet):
 def edit_packet(pkt, nlri, adv_segment):
     print("edit packet. bytes:")
     print(bytes(pkt))
-    print('nlri to remove: ' + bytes(nlri))
+    print('nlri to remove: ' + str(bytes(nlri)))
     print(nlri.show())
     print ("Advertised Segment="+str(adv_segment))
     p_hijack_bytes = bytearray(bytes(pkt))
