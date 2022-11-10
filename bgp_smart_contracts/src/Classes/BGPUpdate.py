@@ -26,7 +26,6 @@ class BGPUpdate:
         if len(self.bgp_update.path_attr[1].attribute.segments[-1].segment_value) > 1: #grabs last asn in as_path (origin)
             self.origin_asn = self.bgp_update.path_attr[1].attribute.segments[-1].segment_value[-1]
         else:
-            print('reverting to segment length')
             self.origin_asn = self.bgp_update.path_attr[1].attribute.segments[-1].segment_length
         return self.origin_asn
 

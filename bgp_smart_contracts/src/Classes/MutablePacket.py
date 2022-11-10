@@ -20,8 +20,9 @@ class MutablePacket():
 
     def bytes(self):
         return bytes(self.pkt)
-        
+
     def remove_nlri(self, nlri, update):
+        print("removing invalid nlri...")
         bgp_update = self.pkt.getlayer(scapy.contrib.bgp.BGPUpdate, update.get_layer_index())
 
         nlri_bytes = bytes(nlri)
@@ -42,7 +43,6 @@ class MutablePacket():
         
             # get index of update in the packet
             pkt_index = pkt_bytes.index(bytes(bgp_update))
-            print(pkt_index)
             
             # delete the entire update from the packet
             del pkt_bytes[pkt_index:pkt_index+len(bytes(bgp_update))]

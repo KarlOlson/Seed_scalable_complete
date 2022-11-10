@@ -130,7 +130,6 @@ def pkt_in(packet):
 
 def handle_invalid_advertisement(m_pkt, nlri, validationResult, update):
     print ("AS " + str(update.get_origin_asn()) + " Failed Authorization. [" + str(validationResult) + "]. BGPUpdate layer: " + str(update.get_layer_index()))
-    print("modifying packet: ")
     remove_invalid_nlri_from_packet(m_pkt, nlri, update)
 
 
@@ -144,16 +143,11 @@ def remove_invalid_nlri_from_packet(m_pkt, nlri, update):
 
 #Chain check function. Needs to be updated with smart contract calls.  
 def bgpchain_validate(segment, tx_sender):
-    print ("Validating segment.....")
-    print (tx_sender)
     inIP = IPv4Address(segment[1])
-    print (inIP)
     inSubnet = int(segment[2])
-    print (str(inSubnet))
     inASN = int(segment[0])
-    print (str(inASN))
 
-    print ("Checking segment: AS" + str(inASN)+ " , " + str(inIP) + "/" + str(inSubnet))
+    print ("Validating segment: AS" + str(inASN)+ " , " + str(inIP) + "/" + str(inSubnet))
     validationResult = tx_sender.tx.sc_validatePrefix(int(inIP), inSubnet, inASN)
     print(str(validationResult))
     return validationResult
