@@ -86,7 +86,7 @@ class MutablePacket():
     #         nlri.show()
 
     def remove_nlri(self, nlri, update):
-        bgp_update = self.packet.getlayer(scapy.contrib.bgp.BGPUpdate, update.layer_index())
+        bgp_update = self.pkt.getlayer(scapy.contrib.bgp.BGPUpdate, update.layer_index())
 
         nlri_bytes = bytes(nlri)
         print("len of nlri: " + str(len(nlri_bytes)))
