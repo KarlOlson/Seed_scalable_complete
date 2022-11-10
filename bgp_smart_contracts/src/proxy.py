@@ -222,7 +222,7 @@ def pkt_in(packet):
 
 
 def handle_invalid_advertisement(m_pkt, nlri, validationResult, update):
-    print ("AS " + str(update.origin_asn()) + " Failed Authorization. [" + str(validationResult) + "]. BGPUpdate layer: " + str(update.layer_index()))
+    print ("AS " + str(update.get_origin_asn()) + " Failed Authorization. [" + str(validationResult) + "]. BGPUpdate layer: " + str(update.get_layer_index()))
     print("modifying packet: ")
     remove_invalid_nlri_from_packet(m_pkt, nlri, update)
 
