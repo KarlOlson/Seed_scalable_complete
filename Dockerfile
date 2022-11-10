@@ -16,8 +16,8 @@ RUN apt-get install -y libnfnetlink-dev libnetfilter-queue-dev
 RUN pip3 install netfilterqueue
 RUN pip3 install netifaces
 RUN apt-get install iptables sudo -y
-RUN echo "hedsy"
-RUN git clone --depth 1 --filter=blob:none -b greg-main  https://github.com/KarlOlson/Seed_scalable_complete/
+RUN echo "hey"
+RUN git clone --depth 1 --filter=blob:none -b multiple-updates  https://github.com/KarlOlson/Seed_scalable_complete/
 WORKDIR /Seed_scalable_complete
 RUN git sparse-checkout set bgp_smart_contracts
 RUN git branch
