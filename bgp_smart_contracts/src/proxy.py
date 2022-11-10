@@ -11,6 +11,7 @@ import time
 from Classes.Account import Account
 from Utils.Utils import *
 from Classes.MutablePacket import MutablePacket
+from Classes.BGPUpdate import BGPUpdate
 from ipaddress import IPv4Address
 import os, sys
 import datetime
@@ -123,35 +124,49 @@ def pkt_in(packet):
     if m_pkt.is_bgp_update(): # checks for both bgp packet and bgp update
         print("rx BGP Update pkt")
         try:
-            if m_pkt.get_segment_length() == 1:
-                print("rx BGP Update pkt with single segment")
-                m_pkt.print_bgp_update_summary()
-                for count, nlri in enumerate(m_pkt.get_nlris()):
-                    print("nlri count: " + str(count))
-                    print ("BGP NLRI check: " + str(nlri.prefix))
+            # iterate over packet bgp payloads (bgp layers)
+            layer_index = 0
+            for payload in m_pkt.iterpayloads():
+                if isinstance(payload,  scapy.contrib.bgp.BGPHeader):
+                    most_recent_bgp_header = payload
+                elif isinstance(payload, scapy.contrib.bgp.BGPUpdate):
+                    layer_index += 1
+                    print(type(payload))
+                    # m_pkt.add_bgp_update(BGPUpdate())
+                    update = BGPUpdate(most_recent_bgp_header, payload, layer_index)
+                    if not update.has_withdraw_routes() and update.has_nlri_advertisements():
+                        # origin_asn = get_update_origin_asn(update)
+                        for count, nlri in enumerate(update.nlri()):
+                            segment = update.get_segment(nlri)
+                            print("nlri count: " + str(count))
+                            print("BGP NLRI check: " + str(nlri.prefix))
+                            print ("Advertised Segment: " + str(segment))
+                            print ("validating advertisement for ASN: " + str(update.get_origin_asn()))
 
-                    # chain mutable list = [AS, Network Prefix, CIDR]
-                    adv_segment = m_pkt.get_adv_segment(nlri)
-                    print ("Advertised Segment: " + str(m_pkt.get_adv_segment(nlri)))
-                    print ("validating advertisement for ASN: " + str(m_pkt.get_segment_asn()))
-                    
-                    validationResult = bgpchain_validate(adv_segment, tx_sender)
-                    if validationResult == validatePrefixResult.prefixValid:
-                        print("NLRI " + str(count) + " passed authorization...checking next ASN")
-                    elif validationResult == validatePrefixResult.prefixNotRegistered:
-                        handle_invalid_advertisement(m_pkt, nlri, validationResult)
-                    elif validationResult == validatePrefixResult.prefixOwnersDoNotMatch:
-                        handle_invalid_advertisement(m_pkt, nlri, validationResult)
+                            validationResult = bgpchain_validate(segment, tx_sender)
+                            if validationResult == validatePrefixResult.prefixValid:
+                                print("NLRI " + str(count) + " passed authorization...checking next ASN")
+                            elif validationResult == validatePrefixResult.prefixNotRegistered:
+                                handle_invalid_advertisement(m_pkt, nlri, validationResult, update)
+                            elif validationResult == validatePrefixResult.prefixOwnersDoNotMatch:
+                                handle_invalid_advertisement(m_pkt, nlri, validationResult, update)
+                            else:
+                                print("error. should never get here. received back unknown validationResult: " + str(validationResult))
+                        if m_pkt.is_modified():
+                            print("BGP Update packet has been modified")
                     else:
-                        print("error. should never get here. received back unknown validationResult: " + str(validationResult))
-                print ("All Advertised ASN's have been checked")
-                if m_pkt.is_modified():
-                    print("setting modified packet payload")
-                    packet.set_payload(m_pkt.bytes())
-                packet.accept()
+                        print("BGP Update packet has no NLRI advertisements")
+                else:
+                    print("Packet layer is not a BGPUpdate or BGPHeader layer")
+
+            print ("All Advertised ASN's within all BGP Updates have been checked")
+            if m_pkt.is_modified():
+                print("setting modified packet payload")
+                packet.set_payload(m_pkt.bytes())
             else:
-                print("Not a new neighbor path announcement")
-                packet.accept()
+                print("packet not modified. accepting as is")
+            packet.accept()
+
         except IndexError as ie:
             print("index error. diff type of bgp announcement. accept packet. error: " + repr(ie))
             packet.accept()
@@ -161,17 +176,59 @@ def pkt_in(packet):
             # packet.accept()
             pass
     else:
+        print("not a bgp update packet. accept packet")
         packet.accept()
+           
+
+    #         if m_pkt.get_segment_length() == 1:
+    #             print("rx BGP Update pkt with single segment")
+    #             m_pkt.print_bgp_update_summary()
+    #             for count, nlri in enumerate(m_pkt.get_nlris()):
+    #                 print("nlri count: " + str(count))
+    #                 print ("BGP NLRI check: " + str(nlri.prefix))
+
+    #                 # chain mutable list = [AS, Network Prefix, CIDR]
+    #                 adv_segment = m_pkt.get_adv_segment(nlri)
+    #                 print ("Advertised Segment: " + str(m_pkt.get_adv_segment(nlri)))
+    #                 print ("validating advertisement for ASN: " + str(m_pkt.get_segment_asn()))
+                    
+    #                 validationResult = bgpchain_validate(adv_segment, tx_sender)
+    #                 if validationResult == validatePrefixResult.prefixValid:
+    #                     print("NLRI " + str(count) + " passed authorization...checking next ASN")
+    #                 elif validationResult == validatePrefixResult.prefixNotRegistered:
+    #                     handle_invalid_advertisement(m_pkt, nlri, validationResult)
+    #                 elif validationResult == validatePrefixResult.prefixOwnersDoNotMatch:
+    #                     handle_invalid_advertisement(m_pkt, nlri, validationResult)
+    #                 else:
+    #                     print("error. should never get here. received back unknown validationResult: " + str(validationResult))
+    #             print ("All Advertised ASN's have been checked")
+    #             if m_pkt.is_modified():
+    #                 print("setting modified packet payload")
+    #                 packet.set_payload(m_pkt.bytes())
+    #             packet.accept()
+    #         else:
+    #             print("Not a new neighbor path announcement")
+    #             packet.accept()
+    #     except IndexError as ie:
+    #         print("index error. diff type of bgp announcement. accept packet. error: " + repr(ie))
+    #         packet.accept()
+    #         print("accepted other bgp type packet")
+    #     except Exception as e: 
+    #         print("bgp msg other: " + repr(e))
+    #         # packet.accept()
+    #         pass
+    # else:
+    #     packet.accept()
 
 
-def handle_invalid_advertisement(m_pkt, nlri, validationResult):
-    print ("AS " + str(m_pkt.get_segment_asn()) + " Failed Authorization. [" + str(validationResult) + "]")
+def handle_invalid_advertisement(m_pkt, nlri, validationResult, update):
+    print ("AS " + str(update.origin_asn()) + " Failed Authorization. [" + str(validationResult) + "]. BGPUpdate layer: " + str(update.layer_index()))
     print("modifying packet: ")
-    remove_invalid_nlri_from_packet(m_pkt, nlri)
+    remove_invalid_nlri_from_packet(m_pkt, nlri, update)
 
 
-def remove_invalid_nlri_from_packet(m_pkt, nlri):
-    m_pkt.remove_nlri(nlri)
+def remove_invalid_nlri_from_packet(m_pkt, nlri, update):
+    m_pkt.remove_nlri(nlri, update)
     if m_pkt.is_modified():
         print("packet modified")
     else:
