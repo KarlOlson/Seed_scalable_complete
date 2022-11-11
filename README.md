@@ -110,7 +110,7 @@ You can use SEED to build a terraform project and then deploy that to google clo
 1. scapy: pkt.show() - Shows packet information in pretty print format, does not recalculate packet info (chksum, length). use show2() to recalc.
 2. scapy: pkt.command() - Shows packet information in order of what commands you would use to get to specific data
 3. docker: docker cp {containerId}:/file/path/within/container /host/path/target - copies file form container to local host
-4. docker: docker container exec -it <containerId> /bin/zsh - connects to a container from a host.
+4. docker: docker container exec -it [containerId] /bin/zsh - connects to a container from a host.
 
 ## License
 
