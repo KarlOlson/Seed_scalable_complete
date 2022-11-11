@@ -1066,13 +1066,16 @@ class Docker(Compiler):
                 dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
                 start_commands += 'chmod +x /ganache.sh\n'
                 special_commands += '/ganache.sh\n'
+                net_asn=list(set(network_devices))
+                special_commands += 'python3 /bgp_smart_contract/src/account_setup.py {}'.format(net_asn)
 
-        elif "router" in node.getName():
+        elif (("router" in node.getName()) or (re.match("r[0-9]", node.getName()))):
                 dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'].format(node.getAsn(), node.getCrossConnects()))
                 dockerfile += self._addFile('/bgp_smart_contracts/src/wait_for_it.sh', DockerCompilerFileTemplates['wait_for_it'])
                 start_commands += 'chmod +x /proxy.sh\n'
                 start_commands += 'chmod +x /bgp_smart_contracts/src/wait_for_it.sh\n'
                 special_commands += '/proxy.sh\n'
+                network_devices.append(node.getAsn())
 
 
 
