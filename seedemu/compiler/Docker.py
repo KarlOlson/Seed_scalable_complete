@@ -1067,7 +1067,7 @@ class Docker(Compiler):
                 start_commands += 'chmod +x /ganache.sh\n'
                 special_commands += '/ganache.sh\n'
                 net_asn=list(set(network_devices))
-                special_commands += 'python3 /bgp_smart_contracts/src/account_setup.py {}'.format(net_asn)
+                special_commands += '''python3 /bgp_smart_contracts/src/account_setup.py '{}' '''.format(net_asn)
 
         elif (("router" in node.getName()) or (re.match("r[0-9]", node.getName()))):
                 dockerfile += self._addFile('/proxy.sh', DockerCompilerFileTemplates['proxy'].format(node.getAsn(), node.getCrossConnects()))
