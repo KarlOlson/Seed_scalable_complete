@@ -494,6 +494,8 @@ DefaultImages: List[DockerImage] = []
 
 DefaultImages.append(DockerImage('gregcusack/bgpchain:v3', []))
 
+network_devices=[]
+
 class Docker(Compiler):
     """!
     @brief The Docker compiler class.
