@@ -14,7 +14,7 @@ import os, sys
 def cycle():
     with open(r"accounts.txt", 'r') as fp:
     
-        asn_numbers=sys.argv[1] #Enter the ASNs you want to have running the blockchain and proxy code. Alternatively use range(start, stop[, step]) for a range of values.
+        asn_numbers=sys.argv[0] #Enter the ASNs you want to have running the blockchain and proxy code. Alternatively use range(start, stop[, step]) for a range of values.
         lines =[]
     
         for i, line in enumerate(fp):
