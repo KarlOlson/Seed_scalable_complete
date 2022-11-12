@@ -54,7 +54,7 @@ python3 scripts/iana-contract-setup.py 0
 # sleep 2 
 # python3 deploy.py ACCOUNT0 IANA
 # sleep 2
-python3 account_script.py 
+#python3 account_script.py 
 echo 'Ganache setup ran. Check Logs for details.'
 cd ..
 cd ..
