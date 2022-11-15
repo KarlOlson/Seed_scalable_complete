@@ -12,7 +12,7 @@ import os, sys
 
 #def cycle (contract_file):
 def cycle():
-    with open(r"accounts.txt", 'r') as fp:
+    with open("accounts.txt", 'r') as fp:
     
         n=len(sys.argv[1])
         a=sys.argv[1][1:n-1]
