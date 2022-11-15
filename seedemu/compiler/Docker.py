@@ -43,7 +43,8 @@ while read -sr expr; do {
 #Optionally you can add --database.dbPath /ganache to the ganache command to make database...but not recommended.
 DockerCompilerFileTemplates['ganache'] = """\
 #!/bin/bash
-ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic & 
+mkdir -p logs
+ganache -a 200 -p 8545 -h 10.100.0.100 --deterministic > logs/bgp-$(date +%Y-%m-%d-%H:%M:%S) & 
 sleep 5
 cd /bgp_smart_contracts/src 
 mkdir pcaps
