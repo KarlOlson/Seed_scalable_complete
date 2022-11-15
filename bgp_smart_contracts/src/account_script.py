@@ -11,8 +11,8 @@ from ipaddress import IPv4Address
 import os, sys
 
 #def cycle (contract_file):
+    with open("/bgp_smart_contracts/src/accounts.txt", 'r') as fp:
 def cycle():
-    with open("accounts.txt", 'r') as fp:
     
         n=len(sys.argv[1])
         a=sys.argv[1][1:n-1]
