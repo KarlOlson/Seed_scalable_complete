@@ -1,5 +1,5 @@
 from scapy.all import *
-from Classes.PacketProcessing.FlowDirection import FlowDirection
+from .FlowDirection import FlowDirection
 
 class FiveTuple:
     def __init__(self, proto, src_port, dst_port, src_ip, dst_ip):

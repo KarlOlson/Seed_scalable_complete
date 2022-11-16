@@ -1,5 +1,5 @@
-from Classes.PacketProcessing.Connection import Connection
-from Classes.PacketProcessing.FiveTuple import FiveTuple
+from .Connection import Connection
+from .FiveTuple import FiveTuple
 
 from scapy.all import *
 

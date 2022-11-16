@@ -1,8 +1,8 @@
 import threading
 from scapy.all import *
 from FiveTuple import FiveTuple
-from Classes.PacketProcessing.Flow import Flow
-from Classes.PacketProcessing.FlowDirection import FlowDirection
+from .Flow import Flow
+from .FlowDirection import FlowDirection
 
 class Connection:
 
