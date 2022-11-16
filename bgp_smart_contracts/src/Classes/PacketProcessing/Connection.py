@@ -1,6 +1,6 @@
 import threading
 from scapy.all import *
-from FiveTuple import FiveTuple
+from .FiveTuple import FiveTuple
 from .Flow import Flow
 from .FlowDirection import FlowDirection
 
