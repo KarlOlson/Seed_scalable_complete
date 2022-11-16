@@ -34,8 +34,8 @@ class Connection:
     def __repr__(self):
         return f"<Connection five_tuple:{self.five_tuple}>"
 
-    def is_modified(self):
-        return (self.peer_surplus or self.our_surplus)
+    # def is_modified(self):
+    #     return (self.peer_surplus or self.our_surplus)
 
     def increase_peer_surplus(self, amount):
         self.peer_surplus_lock.acquire()

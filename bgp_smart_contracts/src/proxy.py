@@ -138,8 +138,8 @@ def handle_invalid_advertisement(m_pkt, nlri, validationResult, update):
 
 def remove_invalid_nlri_from_packet(m_pkt, nlri, update):
     m_pkt.remove_nlri(nlri, update)
-    if m_pkt.is_modified():
-        print("packet modified")
+    if m_pkt.is_bgp_modified():
+        print("bgp packet modified")
     else:
         print("ERROR: packet modification failed")
 
