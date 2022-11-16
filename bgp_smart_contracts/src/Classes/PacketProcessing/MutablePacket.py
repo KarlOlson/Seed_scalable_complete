@@ -36,7 +36,7 @@ class MutablePacket():
     def decr_ack(self, amnt):
         self.set_headers_modified()
         self.ack_num -= amnt
-        self.pkt[TCP].seq = self.seq_num
+        self.pkt[TCP].ack = self.ack_num
 
     def is_bgp(self):
         if (str(self.summary()).find('BGPHeader') > 0):

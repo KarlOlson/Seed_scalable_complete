@@ -67,7 +67,7 @@ class Connection:
             print("outbound flow")
             if not self.out_flow:
                 print("outbound for connection not established yet")
-                self.out_flow = Flow(pkt[TCP].seq, pkt[TCP].ack, FlowDirection.outbound)
+                self.out_flow = Flow(pkt[TCP].ack, pkt[TCP].seq, FlowDirection.outbound)
             else:
                 print("update outbound flow. outbound already established")
                 self.update_outbound_flow(m_pkt)
@@ -75,7 +75,7 @@ class Connection:
             print("inbound flow")
             if not self.in_flow:
                 print("inbound for connection not established yet")
-                self.in_flow = Flow(pkt[TCP].seq, pkt[TCP].ack, FlowDirection.inbound)
+                self.in_flow = Flow(pkt[TCP].ack, pkt[TCP].seq, FlowDirection.inbound)
             else:
                 print("update inbound flow. outbound already established")
                 self.update_inbound_flow(m_pkt)
