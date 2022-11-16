@@ -1,6 +1,7 @@
-from Connection import Connection
+from bgp_smart_contracts.src.Classes.PacketProcessing.Connection import Connection
+from bgp_smart_contracts.src.Classes.PacketProcessing.FiveTuple import FiveTuple
+
 from scapy.all import *
-from FiveTuple import FiveTuple
 
 
 class ConnectionTracker:
