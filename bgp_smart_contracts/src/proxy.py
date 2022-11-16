@@ -10,28 +10,19 @@ import socket
 import time
 from Classes.Account import Account
 from Utils.Utils import *
-from Classes.MutablePacket import MutablePacket
-from Classes.BGPUpdate import BGPUpdate
+from Classes.PacketProcessing.MutablePacket import MutablePacket
+from Classes.PacketProcessing.BGPUpdate import BGPUpdate
+from Classes.PacketProcessing.Index import Index
+from Classes.PacketProcessing.ConnectionTracker import ConnectionTracker
 from ipaddress import IPv4Address
 import os, sys
 import datetime
 import copy
-import Classes.SetupPathValidation as SetupPathValidation
 import threading
 
-class Index():
-    def __init__(self):
-        self.index = 0
-        self.lock = threading.Lock()
-    
-    def incr_index(self):
-        self.lock.acquire()
-        self.index = self.index + 1
-        val = self.index
-        self.lock.release()
-        return val
 
 global_index = None
+connections = None
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
@@ -69,6 +60,10 @@ def pkt_in(packet):
     # TODO: wrap this pkt with an m_pkt class. can track packet modifications
     print(packet)
     print(m_pkt.show())
+
+    # if not connections.connection_exists(m_pkt):
+    #     connections.add_connection(m_pkt)
+    # connections.update_connection(m_pkt)
 
     if m_pkt.is_bgp_update(): # checks for both bgp packet and bgp update
         print("rx BGP Update pkt")
@@ -156,6 +151,8 @@ def bgpchain_validate(segment, tx_sender):
 
 if __name__=='__main__':
     global_index = Index() 
+    connections = ConnectionTracker()
+
     # instantiate the netfilter queue
     nfqueue = NetfilterQueue()
  
