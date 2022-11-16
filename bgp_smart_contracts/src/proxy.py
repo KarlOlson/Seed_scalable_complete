@@ -6,8 +6,6 @@
 from operator import add
 from netfilterqueue import NetfilterQueue
 from scapy.all import *
-import socket
-import time
 from Classes.Account import Account
 from Utils.Utils import *
 from Classes.PacketProcessing.MutablePacket import MutablePacket
@@ -17,8 +15,6 @@ from Classes.PacketProcessing.ConnectionTracker import ConnectionTracker
 from ipaddress import IPv4Address
 import os, sys
 import datetime
-import copy
-import threading
 
 
 global_index = None
@@ -61,9 +57,9 @@ def pkt_in(packet):
     print(packet)
     print(m_pkt.show())
 
-    # if not connections.connection_exists(m_pkt):
-    #     connections.add_connection(m_pkt)
-    # connections.update_connection(m_pkt)
+    if not connections.connection_exists(m_pkt):
+        connections.add_connection(m_pkt)
+    connections.update_connection(m_pkt)
 
     if m_pkt.is_bgp_update(): # checks for both bgp packet and bgp update
         print("rx BGP Update pkt")
@@ -96,16 +92,24 @@ def pkt_in(packet):
                                 handle_invalid_advertisement(m_pkt, nlri, validationResult, update)
                             else:
                                 print("error. should never get here. received back unknown validationResult: " + str(validationResult))
-                        if m_pkt.is_modified():
+                        if m_pkt.is_bgp_modified():
                             print("BGP Update packet has been modified")
+                        elif m_pkt.are_headers_modified():
+                            print("Packet seq/ack have been modified but BGP has not been modified")
+                        else:
+                            print("BGP update and headers are not modified")
                     else:
                         print("BGP Update packet has no NLRI advertisements")
                 else:
                     print("Packet layer is not a BGPUpdate or BGPHeader layer")
 
             print ("All Advertised ASN's within all BGP Updates have been checked")
-            if m_pkt.is_modified():
-                print("setting modified packet payload")
+            if m_pkt.is_bgp_modified():
+                print("BGP Update packet has been modified")
+                connections.update_connection(m_pkt)
+                packet.set_payload(m_pkt.bytes())
+            elif m_pkt.are_headers_modified(): # no bgp update, pkt headers have already been updated
+                print("headers already updated, accept header modified packet")
                 packet.set_payload(m_pkt.bytes())
             else:
                 print("packet not modified. accepting as is")
@@ -119,7 +123,11 @@ def pkt_in(packet):
             print("bgp msg other: " + repr(e))
             packet.accept()
     else:
-        print("not a bgp update packet. accept packet")
+        print("not a bgp update packet. are headers modified? ")
+        if m_pkt.are_headers_modified():
+            print("yes headers modified. set packet bytes.")
+            packet.set_payload(m_pkt.bytes())
+        print("accept non bgp packet")
         packet.accept()
 
 

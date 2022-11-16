@@ -85,36 +85,41 @@ class Connection:
     def update_outbound_flow(self, m_pkt):
         print("updating outbound flow")
         self.out_flow.update_packet_count()
-        if m_pkt.is_modified():
+        if m_pkt.is_bgp_modified():
             print("outbound packet modified. update seq/ack")
             if m_pkt.payload_len_diff() > 0:
                 print("outbound payload len diff > 0: " + str(m_pkt.payload_len_diff()))
+                self.increase_our_surplus(m_pkt.payload_len_diff())
                 # self.increase_peer_surplus(m_pkt.payload_len_diff())
         else:
             print("outbound packet is not modified. but check on sequence numbers")
             if self.peer_surplus > 0: #deleted content received from peer, and we are responding
                 print("updating ack outbound")
-                # m_pkt.incr_ack(self.peer_surplus)
-                # m_pkt.set_modified()
-            self.out_flow.update_sequence_numbers(m_pkt.seq())
-            self.out_flow.update_ack_numbers(m_pkt.ack())
+                m_pkt.incr_ack(self.peer_surplus)
+                m_pkt.set_headers_modified()
+            else:
+                print("no peer surplus. not updating ack")
+            # self.out_flow.update_sequence_numbers(m_pkt.seq())
+            # self.out_flow.update_ack_numbers(m_pkt.ack())
     
     def update_inbound_flow(self, m_pkt):
         print("updating inbound flow")
         self.in_flow.update_packet_count()
-        if m_pkt.is_modified():
+        if m_pkt.is_bgp_modified():
             print("packet modified inbound. update seq/ack")
             if m_pkt.payload_len_diff() > 0: # packet has been reduced in size
                 print("inbound payload len diff > 0: " + str(m_pkt.payload_len_diff()))
-                # self.increase_peer_surplus(m_pkt.payload_len_diff())
+                self.increase_peer_surplus(m_pkt.payload_len_diff())
         else:
             print("inbound packet is not modified. but check on sequence numbers")
-            if self.peer_surplus > 0: #deleted content received from peer, and we are responding
+            if self.our_surplus > 0: #deleted content received from peer, and we are responding
                 print("updating ack inbound")
-                # m_pkt.incr_ack(self.peer_surplus)
-                # m_pkt.set_modified()
-            self.in_flow.update_sequence_numbers(m_pkt.seq())
-            self.in_flow.update_ack_numbers(m_pkt.ack())
+                m_pkt.incr_ack(self.our_surplus)
+                m_pkt.set_headers_modified()
+            else:
+                print("no our surplus. not updating ack")
+            # self.in_flow.update_sequence_numbers(m_pkt.seq())
+            # self.in_flow.update_ack_numbers(m_pkt.ack())
 
 
     def update_total_packets(self):
