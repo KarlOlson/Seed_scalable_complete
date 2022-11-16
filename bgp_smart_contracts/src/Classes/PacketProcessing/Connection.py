@@ -1,8 +1,8 @@
 import threading
 from scapy.all import *
 from FiveTuple import FiveTuple
-from bgp_smart_contracts.src.Classes.PacketProcessing.Flow import Flow
-from bgp_smart_contracts.src.Classes.PacketProcessing.FlowDirection import FlowDirection
+from Classes.PacketProcessing.Flow import Flow
+from Classes.PacketProcessing.FlowDirection import FlowDirection
 
 class Connection:
 
