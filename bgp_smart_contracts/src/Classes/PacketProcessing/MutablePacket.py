@@ -121,5 +121,14 @@ class MutablePacket():
     def show(self):
         return self.pkt.show()
 
+    def show2(self):
+        return self.pkt.show2()
+
     def iterpayloads(self):
         return self.pkt.iterpayloads()
+
+    def del_ip_chksum(self):
+        del self.pkt[IP].chksum
+    
+    def del_tcp_chksum(self):
+        del self.pkt[TCP].chksum
