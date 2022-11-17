@@ -96,14 +96,14 @@ class Connection:
             if self.peer_surplus > 0: #deleted content received from peer, and we are responding
                 print("updating ack outbound")
                 m_pkt.incr_ack(self.peer_surplus)
-                # m_pkt.incr_ack(10)
                 m_pkt.set_headers_modified()
             else:
                 print("no peer surplus. not updating ack")
         
         if self.our_surplus > 0:
-            print("our surplus > 0. updating seq")
-            m_pkt.decr_seq(self.our_surplus - m_pkt.payload_len_diff())  # only update seq by what we have prviously deleted. do not include current payload len diff
+            change_in_seq = self.our_surplus - m_pkt.payload_len_diff()
+            print("our surplus > 0. updating seq by: " + str(change_in_seq))
+            m_pkt.decr_seq(change_in_seq) # only update seq by what we have prviously deleted. do not include current payload len diff
             m_pkt.set_headers_modified()
             # self.out_flow.update_sequence_numbers(m_pkt.seq())
             # self.out_flow.update_ack_numbers(m_pkt.ack())
@@ -121,14 +121,14 @@ class Connection:
             if self.our_surplus > 0: #deleted content received from peer, and we are responding
                 print("updating ack inbound")
                 m_pkt.incr_ack(self.our_surplus)
-                # m_pkt.incr_ack(10)
                 m_pkt.set_headers_modified()
             else:
                 print("no our surplus. not updating ack")
         
         if self.peer_surplus > 0:
-            print("peer surplus > 0. updating seq")
-            m_pkt.decr_seq(self.peer_surplus - m_pkt.payload_len_diff()) # only update seq by what we have prviously deleted. do not include current payload len diff
+            change_in_seq = self.peer_surplus - m_pkt.payload_len_diff()
+            print("peer surplus > 0. updating seq by: " + str(change_in_seq))
+            m_pkt.decr_seq(change_in_seq) # only update seq by what we have prviously deleted. do not include current payload len diff
             m_pkt.set_headers_modified()
             # self.in_flow.update_sequence_numbers(m_pkt.seq())
             # self.in_flow.update_ack_numbers(m_pkt.ack())
