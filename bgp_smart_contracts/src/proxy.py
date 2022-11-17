@@ -106,17 +106,13 @@ def pkt_in(packet):
                 print("BGP Update packet has been modified")
                 connections.update_connection(m_pkt)
                 print("setting modified bgp packet. accept:")
-                # m_pkt.del_ip_chksum()
-                # m_pkt.del_tcp_chksum()
-                # m_pkt.show2()
+                m_pkt.recalculate_checksums
                 packet.set_payload(m_pkt.bytes())
             else:
                 connections.update_connection(m_pkt)
                 if m_pkt.are_headers_modified():
                     print("headers updated, accept header modified packet")
-                    # m_pkt.del_ip_chksum()
-                    # m_pkt.del_tcp_chksum()
-                    # m_pkt.show2()
+                    m_pkt.recalculate_checksums
                     packet.set_payload(m_pkt.bytes())
                 else:
                     print("packet not modified. accepting as is")
@@ -133,9 +129,7 @@ def pkt_in(packet):
         print("not a bgp update packet. are headers modified? ")
         connections.update_connection(m_pkt)
         if m_pkt.are_headers_modified():
-            # m_pkt.del_ip_chksum()
-            # m_pkt.del_tcp_chksum()
-            # m_pkt.show2()
+            m_pkt.recalculate_checksums
             print("yes headers modified. set packet bytes.")
             packet.set_payload(m_pkt.bytes())
         print("accept non bgp packet")

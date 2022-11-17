@@ -108,6 +108,11 @@ class MutablePacket():
             print("nlri not found:")
             nlri.show()
 
+    def recalculate_checksums(self):
+        del self.pkt[IP].chksum
+        del self.pkt[TCP].chksum
+        self.pkt.show2()
+
     def are_headers_modified(self):
         return self.headers_modified
 
