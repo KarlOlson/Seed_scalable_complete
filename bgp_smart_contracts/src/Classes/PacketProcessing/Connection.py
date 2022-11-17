@@ -96,6 +96,7 @@ class Connection:
             if self.peer_surplus > 0: #deleted content received from peer, and we are responding
                 print("updating ack outbound")
                 # m_pkt.incr_ack(self.peer_surplus)
+                m_pkt.incr_ack(10)
                 m_pkt.set_headers_modified()
             else:
                 print("no peer surplus. not updating ack")
@@ -115,6 +116,7 @@ class Connection:
             if self.our_surplus > 0: #deleted content received from peer, and we are responding
                 print("updating ack inbound")
                 # m_pkt.incr_ack(self.our_surplus)
+                m_pkt.incr_ack(10)
                 m_pkt.set_headers_modified()
             else:
                 print("no our surplus. not updating ack")
