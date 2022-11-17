@@ -103,7 +103,7 @@ class Connection:
         
         if self.our_surplus > 0:
             print("our surplus > 0. updating seq")
-            m_pkt.decr_seq(self.our_surplus)
+            m_pkt.decr_seq(self.our_surplus - m_pkt.payload_len_diff())  # only update seq by what we have prviously deleted. do not include current payload len diff
             m_pkt.set_headers_modified()
             # self.out_flow.update_sequence_numbers(m_pkt.seq())
             # self.out_flow.update_ack_numbers(m_pkt.ack())
@@ -128,7 +128,7 @@ class Connection:
         
         if self.peer_surplus > 0:
             print("peer surplus > 0. updating seq")
-            m_pkt.decr_seq(self.peer_surplus)
+            m_pkt.decr_seq(self.peer_surplus - m_pkt.payload_len_diff()) # only update seq by what we have prviously deleted. do not include current payload len diff
             m_pkt.set_headers_modified()
             # self.in_flow.update_sequence_numbers(m_pkt.seq())
             # self.in_flow.update_ack_numbers(m_pkt.ack())
