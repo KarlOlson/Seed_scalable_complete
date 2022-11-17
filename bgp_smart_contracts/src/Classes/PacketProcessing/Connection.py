@@ -101,7 +101,7 @@ class Connection:
             else:
                 print("no peer surplus. not updating ack")
         
-        if m_pkt.our_surplus() > 0:
+        if self.our_surplus > 0:
             print("our surplus > 0. updating seq")
             m_pkt.decr_seq(self.our_surplus)
             m_pkt.set_headers_modified()
@@ -126,7 +126,7 @@ class Connection:
             else:
                 print("no our surplus. not updating ack")
         
-        if m_pkt.peer_surplus() > 0:
+        if self.peer_surplus > 0:
             print("peer surplus > 0. updating seq")
             m_pkt.decr_seq(self.peer_surplus)
             m_pkt.set_headers_modified()
