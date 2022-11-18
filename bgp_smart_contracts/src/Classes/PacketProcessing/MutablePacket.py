@@ -5,8 +5,46 @@ load_contrib('bgp') #scapy does not automatically load items from Contrib. Must 
 class MutablePacket():
     def __init__(self, pkt):
         self.pkt = pkt
-        self.been_modified = False
-        self.bgp_updates = []
+        self.headers_modified = False
+        self.bgp_modified = False
+
+        self.ack_num = pkt[TCP].ack
+        self.seq_num = pkt[TCP].seq
+
+        self.headers_modified = False
+        self.diff = 0
+        self.new_IP_len = 0
+
+
+    def ack(self):
+        return self.ack_num
+    
+    def seq(self):
+        return self.seq_num
+
+    def packet(self):
+        return self.pkt
+
+    def payload_len_diff(self):
+        return self.diff
+
+    def incr_ack(self, amnt):
+        self.set_headers_modified()
+        self.ack_num += amnt
+        self.pkt[TCP].ack = self.ack_num
+
+    def decr_ack(self, amnt):
+        self.set_headers_modified()
+        self.ack_num -= amnt
+        self.pkt[TCP].ack = self.ack_num
+
+    def incr_seq(self, amnt):
+        self.seq_num += amnt
+        self.pkt[TCP].seq = self.seq_num
+
+    def decr_seq(self, amnt):
+        self.seq_num -= amnt
+        self.pkt[TCP].seq = self.seq_num
 
     def is_bgp(self):
         if (str(self.summary()).find('BGPHeader') > 0):
@@ -58,22 +96,36 @@ class MutablePacket():
             bgp_header.len = bgp_header.len - len(nlri_bytes)
 
             # update pkt checksums, and lengths, set modified flag
-            del self.pkt[IP].chksum
-            del self.pkt[TCP].chksum
+
+            self.diff = len(nlri_bytes)
             self.pkt[IP].len = self.pkt[IP].len - len(nlri_bytes)
             print("modified packet: ") 
-            self.pkt.show2()
-            self.set_modified()
+            self.recalculate_checksums()
+            # del self.pkt[IP].chksum
+            # del self.pkt[TCP].chksum
+            # self.pkt.show2()
+            self.set_bgp_modified()
         except ValueError as v:
             print("Error. nlri not found in packet. this is weird: " + repr(v))
             print("nlri not found:")
             nlri.show()
 
-    def is_modified(self):
-        return self.been_modified
+    def recalculate_checksums(self):
+        del self.pkt[IP].chksum
+        del self.pkt[TCP].chksum
+        self.pkt.show2()
 
-    def set_modified(self):
-        self.been_modified = True
+    def are_headers_modified(self):
+        return self.headers_modified
+
+    def is_bgp_modified(self):
+        return self.bgp_modified
+
+    def set_bgp_modified(self):
+        self.bgp_modified = True
+
+    def set_headers_modified(self):
+        self.headers_modified = True
 
     def packet(self):
         return self.pkt
@@ -84,5 +136,14 @@ class MutablePacket():
     def show(self):
         return self.pkt.show()
 
+    def show2(self):
+        return self.pkt.show2()
+
     def iterpayloads(self):
         return self.pkt.iterpayloads()
+
+    def del_ip_chksum(self):
+        del self.pkt[IP].chksum
+    
+    def del_tcp_chksum(self):
+        del self.pkt[TCP].chksum

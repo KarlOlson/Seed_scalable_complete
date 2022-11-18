@@ -6,32 +6,19 @@
 from operator import add
 from netfilterqueue import NetfilterQueue
 from scapy.all import *
-import socket
-import time
 from Classes.Account import Account
 from Utils.Utils import *
-from Classes.MutablePacket import MutablePacket
-from Classes.BGPUpdate import BGPUpdate
+from Classes.PacketProcessing.MutablePacket import MutablePacket
+from Classes.PacketProcessing.BGPUpdate import BGPUpdate
+from Classes.PacketProcessing.Index import Index
+from Classes.PacketProcessing.ConnectionTracker import ConnectionTracker
 from ipaddress import IPv4Address
 import os, sys
 import datetime
-import copy
-import Classes.SetupPathValidation as SetupPathValidation
-import threading
 
-class Index():
-    def __init__(self):
-        self.index = 0
-        self.lock = threading.Lock()
-    
-    def incr_index(self):
-        self.lock.acquire()
-        self.index = self.index + 1
-        val = self.index
-        self.lock.release()
-        return val
 
 global_index = None
+connections = None
 
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
 
@@ -70,6 +57,10 @@ def pkt_in(packet):
     print(packet)
     print(m_pkt.show())
 
+    if not connections.connection_exists(m_pkt):
+        connections.add_connection(m_pkt)
+    # connections.update_connection(m_pkt)
+
     if m_pkt.is_bgp_update(): # checks for both bgp packet and bgp update
         print("rx BGP Update pkt")
         try:
@@ -101,19 +92,30 @@ def pkt_in(packet):
                                 handle_invalid_advertisement(m_pkt, nlri, validationResult, update)
                             else:
                                 print("error. should never get here. received back unknown validationResult: " + str(validationResult))
-                        if m_pkt.is_modified():
+                        if m_pkt.is_bgp_modified():
                             print("BGP Update packet has been modified")
+                        else:
+                            print("BGP update and headers are not modified")
                     else:
                         print("BGP Update packet has no NLRI advertisements")
                 else:
                     print("Packet layer is not a BGPUpdate or BGPHeader layer")
 
             print ("All Advertised ASN's within all BGP Updates have been checked")
-            if m_pkt.is_modified():
-                print("setting modified packet payload")
+            if m_pkt.is_bgp_modified():
+                print("BGP Update packet has been modified")
+                connections.update_connection(m_pkt)
+                print("setting modified bgp packet. accept:")
+                m_pkt.recalculate_checksums()
                 packet.set_payload(m_pkt.bytes())
             else:
-                print("packet not modified. accepting as is")
+                connections.update_connection(m_pkt)
+                if m_pkt.are_headers_modified():
+                    print("headers updated, accept header modified packet")
+                    m_pkt.recalculate_checksums()
+                    packet.set_payload(m_pkt.bytes())
+                else:
+                    print("packet not modified. accepting as is")
             packet.accept()
 
         except IndexError as ie:
@@ -124,7 +126,13 @@ def pkt_in(packet):
             print("bgp msg other: " + repr(e))
             packet.accept()
     else:
-        print("not a bgp update packet. accept packet")
+        print("not a bgp update packet. are headers modified? ")
+        connections.update_connection(m_pkt)
+        if m_pkt.are_headers_modified():
+            m_pkt.recalculate_checksums()
+            print("yes headers modified. set packet bytes.")
+            packet.set_payload(m_pkt.bytes())
+        print("accept non bgp packet")
         packet.accept()
 
 
@@ -135,8 +143,8 @@ def handle_invalid_advertisement(m_pkt, nlri, validationResult, update):
 
 def remove_invalid_nlri_from_packet(m_pkt, nlri, update):
     m_pkt.remove_nlri(nlri, update)
-    if m_pkt.is_modified():
-        print("packet modified")
+    if m_pkt.is_bgp_modified():
+        print("bgp packet modified")
     else:
         print("ERROR: packet modification failed")
 
@@ -156,6 +164,8 @@ def bgpchain_validate(segment, tx_sender):
 
 if __name__=='__main__':
     global_index = Index() 
+    connections = ConnectionTracker()
+
     # instantiate the netfilter queue
     nfqueue = NetfilterQueue()
  
