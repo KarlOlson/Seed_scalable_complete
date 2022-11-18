@@ -96,12 +96,14 @@ class MutablePacket():
             bgp_header.len = bgp_header.len - len(nlri_bytes)
 
             # update pkt checksums, and lengths, set modified flag
-            del self.pkt[IP].chksum
-            del self.pkt[TCP].chksum
+
             self.diff = len(nlri_bytes)
             self.pkt[IP].len = self.pkt[IP].len - len(nlri_bytes)
             print("modified packet: ") 
-            self.pkt.show2()
+            self.recalculate_checksums()
+            # del self.pkt[IP].chksum
+            # del self.pkt[TCP].chksum
+            # self.pkt.show2()
             self.set_bgp_modified()
         except ValueError as v:
             print("Error. nlri not found in packet. this is weird: " + repr(v))
