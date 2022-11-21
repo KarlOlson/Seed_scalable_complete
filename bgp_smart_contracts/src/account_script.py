@@ -18,7 +18,6 @@ def cycle():
         a=sys.argv[1][1:n-1]
         a=a.split(',')
         asn_numbers = [int(i) for i in a] #Enter the ASNs you want to have running the blockchain and proxy code. Alternatively use range(start, stop[, step]) for a range of values.
-        lines =[]
     
         for i, line in enumerate(fp):
             if i in asn_numbers:

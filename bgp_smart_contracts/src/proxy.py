@@ -92,6 +92,17 @@ def pkt_in(packet):
                                 handle_invalid_advertisement(m_pkt, nlri, validationResult, update)
                             else:
                                 print("error. should never get here. received back unknown validationResult: " + str(validationResult))
+                        
+                            path_validation_result = bgpchain_validate_path("path...")
+                            if path_validation_result == validatePathResult.pathVALID:
+                                print("path is valid")
+                            elif path_validation_result == validatePathResult.pathINVALID:
+                                print("path is invalid")
+                            elif path_validation_result == validatePathResult.pathPnpVALID:
+                                print("path if pnp valid")
+                            else:
+                                print("ERROR: should lnever get here. received back unknown path validation result")
+                                
                         if m_pkt.is_bgp_modified():
                             print("BGP Update packet has been modified")
                         else:
@@ -160,7 +171,8 @@ def bgpchain_validate(segment, tx_sender):
     print(str(validationResult))
     return validationResult
 
- 
+def bgpchain_validate_path(path):
+    print("validating path: " + str(path))
 
 if __name__=='__main__':
     global_index = Index() 
