@@ -252,6 +252,9 @@ cd /bgp_smart_contracts/src/
 mkdir -p logs
 ./wait_for_it.sh 10.100.0.100:8545 -t 25 -- python3 -u proxy.py {} {} > logs/log.log &
 mkdir -p pcaps
+
+
+
 # tcpdump -i any -n tcp port 179 -w pcaps/run.pcap -Z root &
 tcpdump -i any -n -w pcaps/run.pcap -Z root &
 echo 'Proxy setup ran. Listening for packets...'
@@ -1080,6 +1083,7 @@ class Docker(Compiler):
                 start_commands += 'chmod +x /proxy.sh\n'
                 start_commands += 'chmod +x /bgp_smart_contracts/src/wait_for_it.sh\n'
                 special_commands += '/proxy.sh\n'
+                special_commands += 'python3 /bgp_smart_contracts/src/scripts/path-validation-setup.py ' + str(node.getName())
                 network_devices.append(node.getAsn())
 
 
