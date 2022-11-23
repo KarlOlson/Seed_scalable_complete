@@ -12,6 +12,8 @@ from Classes.PacketProcessing.MutablePacket import MutablePacket
 from Classes.PacketProcessing.BGPUpdate import BGPUpdate
 from Classes.PacketProcessing.Index import Index
 from Classes.PacketProcessing.ConnectionTracker import ConnectionTracker
+from Classes.PacketProcessing.FiveTuple import FiveTuple
+from Classes.PacketProcessing.FlowDirection import FlowDirection
 from ipaddress import IPv4Address
 import os, sys
 import datetime
@@ -93,16 +95,20 @@ def pkt_in(packet):
                             else:
                                 print("error. should never get here. received back unknown validationResult: " + str(validationResult))
                         
-                            path_validation_result = bgpchain_validate_path("path...")
-                            if path_validation_result == validatePathResult.pathVALID:
-                                print("path is valid")
-                            elif path_validation_result == validatePathResult.pathINVALID:
-                                print("path is invalid")
-                            elif path_validation_result == validatePathResult.pathPnpVALID:
-                                print("path if pnp valid")
+                            if FiveTuple.from_pkt(m_pkt.packet()).direction == FlowDirection.outbound:
+                                # on outgoing updates, add the next hop ASN to our path_validation contract
+                                write_next_hop_asn_to_our_path_validation_contract(m_pkt)
                             else:
-                                print("ERROR: should lnever get here. received back unknown path validation result")
-                                
+                                # validate path on incoming updates
+                                path_validation_result = bgpchain_validate_path("path...")
+                                if path_validation_result == validatePathResult.pathVALID:
+                                    print("path is valid")
+                                elif path_validation_result == validatePathResult.pathINVALID:
+                                    print("path is invalid")
+                                elif path_validation_result == validatePathResult.pathPnpVALID:
+                                    print("path if pnp valid")
+                                else:
+                                    print("ERROR: should lnever get here. received back unknown path validation result")
                         if m_pkt.is_bgp_modified():
                             print("BGP Update packet has been modified")
                         else:
@@ -111,7 +117,6 @@ def pkt_in(packet):
                         print("BGP Update packet has no NLRI advertisements")
                 else:
                     print("Packet layer is not a BGPUpdate or BGPHeader layer")
-
             print ("All Advertised ASN's within all BGP Updates have been checked")
             if m_pkt.is_bgp_modified():
                 print("BGP Update packet has been modified")
@@ -173,6 +178,9 @@ def bgpchain_validate(segment, tx_sender):
 
 def bgpchain_validate_path(path):
     print("validating path: " + str(path))
+
+def write_next_hop_asn_to_our_path_validation_contract(m_pkt):
+    print("writing next hop ASN to our path validation contract")
 
 if __name__=='__main__':
     global_index = Index() 
