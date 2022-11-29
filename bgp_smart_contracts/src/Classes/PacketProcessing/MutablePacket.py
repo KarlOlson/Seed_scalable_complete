@@ -1,6 +1,6 @@
 from scapy.all import *
 load_contrib('bgp') #scapy does not automatically load items from Contrib. Must call function and module name to load.
-
+import subprocess
 
 class MutablePacket():
     def __init__(self, pkt):
@@ -147,3 +147,14 @@ class MutablePacket():
     
     def del_tcp_chksum(self):
         del self.pkt[TCP].chksum
+
+    def get_next_hop_asn(self):
+        print("getting next hop ASN from dst_ip: " + str(self.pkt[IP].dst))
+        next_hop_ip = self.pkt[IP].dst
+        try:
+            ret = subprocess.check_output('birdc "sho route where bgp_path ~[= * =]" all | grep ' + next_hop_ip + ' | grep ix', shell=True).decode('utf-8')
+        except subprocess.CalledProcessError as e:
+            print("Error getting next hop ASN: " + repr(e))
+            return None
+        next_hop_asn = int(ret.split("ix", 1)[1].strip())
+        return next_hop_asn

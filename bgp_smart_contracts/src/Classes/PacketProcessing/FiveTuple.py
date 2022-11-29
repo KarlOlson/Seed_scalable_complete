@@ -15,7 +15,7 @@ def get_ip_address(ifname):
 
 def get_interface_names():
     addrs = psutil.net_if_addrs()
-    print(addrs.keys())
+    # print(addrs.keys())
     return addrs.keys()
 
 def get_interface_ips(interface_names):

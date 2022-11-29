@@ -79,7 +79,8 @@ def pkt_in(packet):
                     update = BGPUpdate(most_recent_bgp_header, payload, layer_index)
                     if not update.has_withdraw_routes() and update.has_nlri_advertisements():
                         # Get the next hop ASN from the BGP packet
-                        next_hop_asn = update.get_next_hop_asn()
+                        # next_hop_asn = update.get_next_hop_asn()
+                        next_hop_asn = m_pkt.get_next_hop_asn()
                         for count, nlri in enumerate(update.nlri()):
                             segment = update.get_segment(nlri)
                             print("nlri count: " + str(count))
@@ -98,8 +99,10 @@ def pkt_in(packet):
                                 print("error. should never get here. received back unknown validationResult: " + str(validationResult))
 
                             if FiveTuple.from_pkt(m_pkt.packet()).direction == FlowDirection.outbound:
+                                if next_hop_asn is None:
+                                    print("Error: next_hop_asn is None....uhhhh. Likely a Route Server. Skipping validation")
                                 # on outgoing updates, add the next hop ASN to our path_validation contract
-                                if write_next_hop_asn_to_our_path_validation_contract(next_hop_asn, segment) == TxErrorType.OK:
+                                elif write_next_hop_asn_to_our_path_validation_contract(next_hop_asn, segment) == TxErrorType.OK:
                                     print("Successfully wrote next hop ASN to path validation contract")
                                 else:
                                     print("Error writing next hop ASN to path validation contract")

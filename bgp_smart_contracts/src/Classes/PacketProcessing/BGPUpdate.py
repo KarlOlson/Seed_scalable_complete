@@ -40,15 +40,15 @@ class BGPUpdate:
             self.get_origin_asn_from_payload()
         return [self.origin_asn, str(nlri.prefix).split('/')[0], str(nlri.prefix).split('/')[1]]
 
-    def get_next_hop_asn(self):
-        print("getting next hop ASN")
-        for i in self.bgp_update.path_attr:
-            if i.type_code == 0x03: # 0x02 == AS_PATH
-                self.next_hop_asn = i.attribute.next_hop
-                print("Next Hop ASN: " + str(self.next_hop_asn))
-        if self.next_hop_asn == None:
-            print("No next hop ASN found")
-            return 0
-        ret = subprocess.check_output('birdc "sho route where bgp_path ~[= * =]" all | grep ' + self.next_hop_asn + ' | grep ix', shell=True).decode('utf-8')
-        ret = int(ret.split("ix", 1)[1].strip())
-        return ret
+    # def get_next_hop_asn(self):
+    #     print("getting next hop ASN")
+    #     for i in self.bgp_update.path_attr:
+    #         if i.type_code == 0x03: # 0x02 == AS_PATH
+    #             self.next_hop_asn = i.attribute.next_hop
+    #             print("Next Hop ASN: " + str(self.next_hop_asn))
+    #     if self.next_hop_asn == None:
+    #         print("No next hop ASN found")
+    #         return 0
+    #     ret = subprocess.check_output('birdc "sho route where bgp_path ~[= * =]" all | grep ' + self.next_hop_asn + ' | grep ix', shell=True).decode('utf-8')
+    #     ret = int(ret.split("ix", 1)[1].strip())
+    #     return ret
