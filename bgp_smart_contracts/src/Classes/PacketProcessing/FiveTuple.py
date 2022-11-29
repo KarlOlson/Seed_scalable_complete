@@ -1,23 +1,60 @@
+import psutil
+import socket
+import fcntl
+import struct
 from scapy.all import *
 from .FlowDirection import FlowDirection
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', ifname[:15])
+    )[20:24])
+
+def get_interface_names():
+    addrs = psutil.net_if_addrs()
+    print(addrs.keys())
+    return addrs.keys
+
+def get_interface_ips(interface_names):
+    ips = []
+    for interface_name in interface_names:
+        if interface_name == "lo":
+            continue
+        ips.append(get_ip_address(interface_name))
+    return ips
 
 class FiveTuple:
     def __init__(self, proto, src_port, dst_port, src_ip, dst_ip):
         self.proto = proto
 
+        self.direction = self.get_flow_direction()
+
         # standardize direction
-        if src_ip < dst_ip:
+        if self.direction == FlowDirection.outbound:
             self.src_port = src_port
             self.dst_port = dst_port
             self.src_ip = src_ip
             self.dst_ip = dst_ip
-            self.direction = FlowDirection.outbound
-        else:
+        elif self.direction == FlowDirection.inbound:
             self.src_port = dst_port
             self.dst_port = src_port
             self.src_ip = dst_ip
             self.dst_ip = src_ip
-            self.direction = FlowDirection.inbound
+        else:
+            raise Exception("Invalid flow direction")
+
+    def get_flow_direction(self):
+        interface_names = get_interface_names()
+        interface_ips = get_interface_ips(interface_names)
+        if self.src_ip in interface_ips:
+            return FlowDirection.outbound
+        else:
+            return FlowDirection.inbound
+
+
 
     def __repr__(self):
         return f"<FiveTuple src_port:{self.src_port}, dst_port:{self.dst_port}, src_ip:{self.src_ip}, dst_ip:{self.dst_ip}>"

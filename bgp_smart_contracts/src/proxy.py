@@ -17,6 +17,7 @@ from Classes.PacketProcessing.FlowDirection import FlowDirection
 from ipaddress import IPv4Address
 import os, sys
 import datetime
+import subprocess
 
 
 global_index = None
@@ -29,8 +30,8 @@ tx_sender_name = "ACCOUNT"+str(sys.argv[1]) #must add an asn # after account, eg
 tx_sender = Account(AccountType.TransactionSender, tx_sender_name)
 #print(tx_sender)
 tx_sender.load_account_keys()
-tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
-print("Transaction setup complete for: " + tx_sender_name)
+# tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
+# print("Transaction setup complete for: " + tx_sender_name)
 
 ################Establishes local IPTABLES Rule to begin processing packets############
 QUEUE_NUM = 1
@@ -77,7 +78,8 @@ def pkt_in(packet):
                     # m_pkt.add_bgp_update(BGPUpdate())
                     update = BGPUpdate(most_recent_bgp_header, payload, layer_index)
                     if not update.has_withdraw_routes() and update.has_nlri_advertisements():
-                        # origin_asn = get_update_origin_asn(update)
+                        # Get the next hop ASN from the BGP packet
+                        next_hop_asn = update.get_next_hop_asn()
                         for count, nlri in enumerate(update.nlri()):
                             segment = update.get_segment(nlri)
                             print("nlri count: " + str(count))
@@ -94,25 +96,32 @@ def pkt_in(packet):
                                 handle_invalid_advertisement(m_pkt, nlri, validationResult, update)
                             else:
                                 print("error. should never get here. received back unknown validationResult: " + str(validationResult))
-                        
+
                             if FiveTuple.from_pkt(m_pkt.packet()).direction == FlowDirection.outbound:
                                 # on outgoing updates, add the next hop ASN to our path_validation contract
-                                write_next_hop_asn_to_our_path_validation_contract(m_pkt)
-                            else:
-                                # validate path on incoming updates
-                                path_validation_result = bgpchain_validate_path("path...")
-                                if path_validation_result == validatePathResult.pathVALID:
-                                    print("path is valid")
-                                elif path_validation_result == validatePathResult.pathINVALID:
-                                    print("path is invalid")
-                                elif path_validation_result == validatePathResult.pathPnpVALID:
-                                    print("path if pnp valid")
+                                if write_next_hop_asn_to_our_path_validation_contract(next_hop_asn, segment) == TxErrorType.OK:
+                                    print("Successfully wrote next hop ASN to path validation contract")
                                 else:
-                                    print("ERROR: should lnever get here. received back unknown path validation result")
+                                    print("Error writing next hop ASN to path validation contract")
+                            # else:
+                            #     # validate path on incoming updates
+                            #     path_validation_result = bgpchain_validate_path("path...")
+                            #     if path_validation_result == validatePathResult.pathVALID:
+                            #         print("path is valid")
+                            #     elif path_validation_result == validatePathResult.pathINVALID:
+                            #         print("path is invalid")
+                            #     elif path_validation_result == validatePathResult.pathPnpVALID:
+                            #         print("path if pnp valid")
+                            #     else:
+                            #         print("ERROR: should lnever get here. received back unknown path validation result")
+
                         if m_pkt.is_bgp_modified():
                             print("BGP Update packet has been modified")
                         else:
                             print("BGP update and headers are not modified")
+
+                        
+
                     else:
                         print("BGP Update packet has no NLRI advertisements")
                 else:
@@ -172,6 +181,10 @@ def bgpchain_validate(segment, tx_sender):
     inASN = int(segment[0])
 
     print ("Validating segment: AS" + str(inASN)+ " , " + str(inIP) + "/" + str(inSubnet))
+    
+    tx_sender.generate_transaction_object("IANA", "IANA_CONTRACT_ADDRESS")
+    print("Transaction setup complete for: " + tx_sender_name)
+    
     validationResult = tx_sender.tx.sc_validatePrefix(int(inIP), inSubnet, inASN)
     print(str(validationResult))
     return validationResult
@@ -179,8 +192,27 @@ def bgpchain_validate(segment, tx_sender):
 def bgpchain_validate_path(path):
     print("validating path: " + str(path))
 
-def write_next_hop_asn_to_our_path_validation_contract(m_pkt):
-    print("writing next hop ASN to our path validation contract")
+def write_next_hop_asn_to_our_path_validation_contract(next_hop_asn, segment):
+    advIP = IPv4Address(segment[1])
+    advSubnet = int(segment[2])
+    print("writing next hop ASN to our path validation contract") 
+    print("Next Hop ASN: " + str(next_hop_asn) + " , Prefix: " + str(advIP) + "/" + str(advSubnet))
+
+    my_path_validation_contract_env_name = tx_sender_name + "_PATH_VALIDATION_CONTRACT"
+    tx_sender.generate_transaction_object("PATH_VALIDATION", my_path_validation_contract_env_name)
+
+    # Generate deploy contract transaction object
+    tx = tx_sender.tx.sc_addAdvertisementToMyContract(tx_sender.get_nonce(), int(advIP), advSubnet, next_hop_asn)
+    # sign and deploy contract
+    tx_hash, tx_receipt, err = tx_sender.tx.sign_and_execute_transaction(tx)
+    if TxErrorType(err) != TxErrorType.OK:
+        print("ERROR: " + str(TxErrorType(err)) + ". Contract failed to execute! Advertisement not added!")
+        return TxErrorType(err)
+    return TxErrorType.OK
+    
+
+
+
 
 if __name__=='__main__':
     global_index = Index() 
