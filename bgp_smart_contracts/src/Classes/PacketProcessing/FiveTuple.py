@@ -30,7 +30,7 @@ class FiveTuple:
     def __init__(self, proto, src_port, dst_port, src_ip, dst_ip):
         self.proto = proto
 
-        self.direction = self.get_flow_direction()
+        self.direction = self.get_flow_direction(src_ip)
 
         # standardize direction
         if self.direction == FlowDirection.outbound:
@@ -46,10 +46,10 @@ class FiveTuple:
         else:
             raise Exception("Invalid flow direction")
 
-    def get_flow_direction(self):
+    def get_flow_direction(self, src_ip):
         interface_names = get_interface_names()
         interface_ips = get_interface_ips(interface_names)
-        if self.src_ip in interface_ips:
+        if src_ip in interface_ips:
             return FlowDirection.outbound
         else:
             return FlowDirection.inbound
