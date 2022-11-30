@@ -93,12 +93,12 @@ class MutablePacket():
             
             # update the bgp header length
             bgp_header = self.pkt.getlayer(scapy.contrib.bgp.BGPHeader, update.get_layer_index())
-            bgp_header.len = bgp_header.len - len(nlri_bytes)
+            bgp_header.len -= len(nlri_bytes)
 
             # update pkt checksums, and lengths, set modified flag
 
-            self.diff = len(nlri_bytes)
-            self.pkt[IP].len = self.pkt[IP].len - len(nlri_bytes)
+            self.diff += len(nlri_bytes)
+            self.pkt[IP].len -= len(nlri_bytes)
             print("modified packet: ") 
             self.recalculate_checksums()
             # del self.pkt[IP].chksum
