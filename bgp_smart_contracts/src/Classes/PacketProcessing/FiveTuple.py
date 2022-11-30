@@ -21,6 +21,7 @@ def get_interface_names():
 def get_interface_ips(interface_names):
     ips = []
     for interface_name in interface_names:
+        print("interface name: " + str(interface_name))
         if interface_name == "lo" or "l0" in interface_name:
             continue
         try:
