@@ -97,8 +97,8 @@ class MutablePacket():
 
             # update pkt checksums, and lengths, set modified flag
 
-            self.diff = len(nlri_bytes)
-            self.pkt[IP].len = self.pkt[IP].len - len(nlri_bytes)
+            self.diff += len(nlri_bytes)
+            self.pkt[IP].len -= len(nlri_bytes)
             print("modified packet: ") 
             self.recalculate_checksums()
             # del self.pkt[IP].chksum
