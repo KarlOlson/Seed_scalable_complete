@@ -21,9 +21,13 @@ def get_interface_names():
 def get_interface_ips(interface_names):
     ips = []
     for interface_name in interface_names:
-        if interface_name == "lo":
+        if interface_name == "lo" or "l0" in interface_name:
             continue
-        ips.append(get_ip_address(interface_name))
+        try:
+            ips.append(get_ip_address(interface_name))
+        except OSError as ose:
+            print("OS error getting interface: " + repr(ose))
+            continue # avoid weird docker interface issues on mac
     return ips
 
 class FiveTuple:
