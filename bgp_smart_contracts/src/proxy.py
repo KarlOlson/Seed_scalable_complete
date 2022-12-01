@@ -99,8 +99,11 @@ def pkt_in(packet):
                                 print("error. should never get here. received back unknown validationResult: " + str(validationResult))
 
                             if FiveTuple.from_pkt(m_pkt.packet()).direction == FlowDirection.outbound:
-                                if next_hop_asn is None:
-                                    print("Error: next_hop_asn is None....uhhhh. Likely a Route Server. Skipping validation")
+                                if next_hop_asn == -1:
+                                    print("Next_hop_asn is None....uhhhh. Likely a Route Server. Skipping validation")
+                                    write_next_hop_asn_to_our_path_validation_contract(next_hop_asn, segment)
+                                elif next_hop_asn == None:
+                                    print("ERROR getting ASN from IP")
                                 # on outgoing updates, add the next hop ASN to our path_validation contract
                                 elif write_next_hop_asn_to_our_path_validation_contract(next_hop_asn, segment) == TxErrorType.OK:
                                     print("Successfully wrote next hop ASN to path validation contract")
@@ -203,6 +206,11 @@ def write_next_hop_asn_to_our_path_validation_contract(next_hop_asn, segment):
 
     my_path_validation_contract_env_name = tx_sender_name + "_PATH_VALIDATION_CONTRACT"
     tx_sender.generate_transaction_object("PATH_VALIDATION", my_path_validation_contract_env_name)
+
+    if next_hop_asn == -1:
+        print("Sending advertisement to a route server")
+    else:
+        print("sending advertisement to an ASN")
 
     # Generate deploy contract transaction object
     tx = tx_sender.tx.sc_addAdvertisementToMyContract(tx_sender.get_nonce(), int(advIP), advSubnet, next_hop_asn)

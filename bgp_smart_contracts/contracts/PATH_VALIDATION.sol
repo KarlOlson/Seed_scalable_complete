@@ -15,7 +15,7 @@ contract PATH_VALIDATION {
 
     struct Advertisement {
         Prefix prefix;
-        uint32 nextHop;
+        int32 nextHop;
         //uint64 timestamp; //could be useful for staleness or something
     }
 
@@ -51,7 +51,7 @@ contract PATH_VALIDATION {
     /// @param ip The IP address of the prefix to add
     /// @param mask The number of bits in the netmask of the prefix to add
     /// @param nextHop The AS number we're sending this BGP message to.
-    function addAdvertisement(uint32 ip, uint8 mask, uint32 nextHop) public onlyOwners {
+    function addAdvertisement(uint32 ip, uint8 mask, int32 nextHop) public onlyOwners {
         // Only valid subnet masks and ASNs
         require (mask <= 32);
         require (nextHop <= 65535);
@@ -69,7 +69,7 @@ contract PATH_VALIDATION {
 
 
     //Validate a received advertisement (prefix, path, next hop) is valid
-    function validateAdvertisement(uint32 ip, uint8 mask, uint32 nextHop) public view returns (validateAdvertisementResult) {
+    function validateAdvertisement(uint32 ip, uint8 mask, int32 nextHop) public view returns (validateAdvertisementResult) {
         // Only valid subnet masks and ASNs
         require (mask <= 32);
         require (nextHop <= 65535);

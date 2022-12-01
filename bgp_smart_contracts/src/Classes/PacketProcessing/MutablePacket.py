@@ -155,6 +155,11 @@ class MutablePacket():
             ret = subprocess.check_output('birdc "sho route where bgp_path ~[= * =]" all | grep ' + next_hop_ip + ' | grep ix', shell=True).decode('utf-8')
         except subprocess.CalledProcessError as e:
             print("Error getting next hop ASN: " + repr(e))
-            return None
+            if e.returncode == 1:
+                print("next_hop_ip: " + str(next_hop_ip) + " has no ASN. Assume sending to an RS")
+                return -1
+            else:
+                print("failed to get next hop IP. bad..... returning None")
+                return None
         next_hop_asn = int(ret.split("ix", 1)[1].strip())
         return next_hop_asn
