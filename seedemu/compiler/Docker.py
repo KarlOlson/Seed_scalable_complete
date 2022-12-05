@@ -251,8 +251,8 @@ DockerCompilerFileTemplates['proxy'] = """\
 cd /bgp_smart_contracts/src/ 
 mkdir -p logs
 ./wait_for_it.sh 10.100.0.100:8545 -t 25 -- python3 -u proxy.py {} {} > logs/log.log &
-sleep 20
-python3 /bgp_smart_contracts/src/scripts/path-validation-setup.py {}
+# sleep 20
+# python3 /bgp_smart_contracts/src/scripts/path-validation-setup.py {}
 
 mkdir -p pcaps
 # tcpdump -i any -n tcp port 179 -w pcaps/run.pcap -Z root &
