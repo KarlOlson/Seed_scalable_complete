@@ -19,6 +19,8 @@ import os, sys
 import datetime
 import subprocess
 
+ACCEPT_UNREGISTERED_ADVERTISEMENTS = True # set to False to remove all advertisements that are not registered
+
 
 global_index = None
 connections = None
@@ -92,7 +94,7 @@ def pkt_in(packet):
                             if validationResult == validatePrefixResult.prefixValid:
                                 print("NLRI " + str(count) + " passed authorization...checking next ASN")
                             elif validationResult == validatePrefixResult.prefixNotRegistered:
-                                handle_invalid_advertisement(m_pkt, nlri, validationResult, update)
+                                handle_unregistered_advertisement(m_pkt, nlri, validationResult, update)
                             elif validationResult == validatePrefixResult.prefixOwnersDoNotMatch:
                                 handle_invalid_advertisement(m_pkt, nlri, validationResult, update)
                             else:
@@ -139,6 +141,13 @@ def pkt_in(packet):
         print("accept non bgp packet")
         packet.accept()
 
+def handle_unregistered_advertisement(m_pkt, nlri, validationResult, update):
+    print ("AS " + str(update.get_origin_asn()) + " Failed Authorization. [" + str(validationResult) + "]. BGPUpdate layer: " + str(update.get_layer_index()))
+    if ACCEPT_UNREGISTERED_ADVERTISEMENTS:
+        print("Accepting unregistered advertisement")
+    else:
+        print("Dropping unregistered advertisement")
+        remove_invalid_nlri_from_packet(m_pkt, nlri, update)
 
 def handle_invalid_advertisement(m_pkt, nlri, validationResult, update):
     print ("AS " + str(update.get_origin_asn()) + " Failed Authorization. [" + str(validationResult) + "]. BGPUpdate layer: " + str(update.get_layer_index()))
