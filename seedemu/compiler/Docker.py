@@ -1074,6 +1074,7 @@ class Docker(Compiler):
                 dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
                 start_commands += 'chmod +x /ganache.sh\n'
                 special_commands += '/ganache.sh\n'
+                network_devices.append(node.getAsn())
                 net_asn=list(set(network_devices))
                 special_commands += '''python3 /bgp_smart_contracts/src/account_script.py '{}' '''.format(net_asn)
 

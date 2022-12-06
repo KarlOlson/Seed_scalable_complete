@@ -31,8 +31,8 @@ def cycle():
             elif i > 153: #enter ASN# where to stop so it doesn't keep running past your known limit.
                 break
         
-        os.system('python3 /bgp_smart_contracts/src/add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]))
-        print('python3 /bgp_smart_contracts/src/add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]), flush=True)  #add asn to smart contract #python add_asn.py <account0> <account1> <ASN1> <account1_address>
+        # os.system('python3 /bgp_smart_contracts/src/add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]))
+        # print('python3 /bgp_smart_contracts/src/add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]), flush=True)  #add asn to smart contract #python add_asn.py <account0> <account1> <ASN1> <account1_address>
      
 	
 		
