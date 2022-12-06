@@ -1068,7 +1068,12 @@ class Docker(Compiler):
 	
         for (cmd, fork) in node.getStartCommands():
             start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
-            
+
+        if node.getName() == "ix101":
+            if 100 not in network_devices:
+                network_devices.append(node.getAsn())
+            else:
+                special_commands += '''python3 /bgp_smart_contracts/src/account_script.py '{}' '''.format([node.getAsn()])
             
         if node.getName() == "ix100":
                 dockerfile += self._addFile('/ganache.sh', DockerCompilerFileTemplates['ganache'])
