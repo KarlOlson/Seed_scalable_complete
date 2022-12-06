@@ -19,7 +19,7 @@ import os, sys
 import datetime
 import subprocess
 
-ACCEPT_UNREGISTERED_ADVERTISEMENTS = True # set to False to remove all advertisements that are not registered
+ACCEPT_UNREGISTERED_ADVERTISEMENTS = False # set to False to remove all advertisements that are not registered
 
 global_index = None
 connections = None
