@@ -22,7 +22,7 @@
     - Add ASNs/prefixes (including IXs!) to blockchain (see account_scripy.py)
     - Add a Dummy Prefix to blockchain (ASN199, 10.199.0.0/24) - Need since we need to hijack an already owned prefix. Can't be unregistered
     - Proxy by default will accept unregistered advertisements. To change, see `proxy.py` at `ACCEPT_UNREGISTERED_ADVERTISEMENTS`
-  2) Configure Routers so they can reach the blockchain
+2) Configure Routers so they can reach the blockchain
     - You must run: sudo ./bgp_smart_contracts/src/scripts/a20-update-routers-for-bgp.sh
     - ^ This updates the ix100, ix101, 3_r1, and 3_r4 so all routers can reach the blockchain for validation
 3) Everything is setup, now you can run a hijack. See next (4)
