@@ -10,6 +10,8 @@ from Utils.Utils import *
 from ipaddress import IPv4Address
 import os, sys
 
+hijack_account = 199 #enter ASN# of the dummy hijack account. prefix: 10.199.0.0/24, ASN: 199 
+
 #def cycle (contract_file):
 def cycle():
     with open("/bgp_smart_contracts/src/accounts.txt", 'r') as fp:
@@ -20,6 +22,8 @@ def cycle():
         asn_numbers = [int(i) for i in a] #Enter the ASNs you want to have running the blockchain and proxy code. Alternatively use range(start, stop[, step]) for a range of values.
     
         print("asn_numbers: " +  str(asn_numbers))
+        print("adding dummy hijack account: " + str(hijack_account))
+        asn_numbers.append(hijack_account)
 
         for i, line in enumerate(fp):
             if i in asn_numbers:
@@ -28,12 +32,8 @@ def cycle():
                 print('python3 /bgp_smart_contracts/src/add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]), flush=True)  #add asn to smart contract #python add_asn.py <account0> <account1> <ASN1> <account1_address>
                 os.system('python3 /bgp_smart_contracts/src/add_prefix.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+'10.'+str(account[0])+'.0.0'+' 24 '+str(account[1]))
                 print('python3 /bgp_smart_contracts/src/add_prefix.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+'10.'+str(account[0])+'.0.0'+' 24 '+str(account[1]), flush=True)  #add prefix to smart contract #python add_prefix.py <account0> <account1> <ASN1> <ip1> <subnet1> <account1_address>
-            elif i > 153: #enter ASN# where to stop so it doesn't keep running past your known limit.
-                break
-        
-        # os.system('python3 /bgp_smart_contracts/src/add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]))
-        # print('python3 /bgp_smart_contracts/src/add_asn.py ACCOUNT0 '+ 'ACCOUNT'+str(account[0])+' '+ str(account[0])+' '+str(account[1]), flush=True)  #add asn to smart contract #python add_asn.py <account0> <account1> <ASN1> <account1_address>
-     
+            # elif i > 153: #enter ASN# where to stop so it doesn't keep running past your known limit.
+            #     break
 	
 		
 if __name__=='__main__':

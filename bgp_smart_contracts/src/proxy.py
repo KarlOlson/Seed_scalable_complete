@@ -21,7 +21,6 @@ import subprocess
 
 ACCEPT_UNREGISTERED_ADVERTISEMENTS = True # set to False to remove all advertisements that are not registered
 
-
 global_index = None
 connections = None
 
@@ -210,6 +209,8 @@ def bgpchain_validate(segment, tx_sender):
 if __name__=='__main__':
     global_index = Index() 
     connections = ConnectionTracker()
+
+    print("Accept Unregistered Advertisements Flag: " + str(ACCEPT_UNREGISTERED_ADVERTISEMENTS))
 
     # instantiate the netfilter queue
     nfqueue = NetfilterQueue()
