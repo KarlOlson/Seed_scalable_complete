@@ -19,21 +19,21 @@
 
 # Update: 12/5/22 - Experiment for A20-Nano-Internet
 1) Deploy A20-nano-internet
-    - Add ASNs/prefixes (including IXs!) to blockchain (see account_scripy.py)
-    - Add a Dummy Prefix to blockchain (ASN199, 10.199.0.0/24) - Need since we need to hijack an already owned prefix. Can't be unregistered
+    - Add ASNs/prefixes (including IXs!) to blockchain (see `account_scripy.py`)
+    - Add a Dummy Prefix to blockchain (`ASN199`, `10.199.0.0/24`) - Need since we need to hijack an already owned prefix. Can't be unregistered
     - Proxy by default will accept unregistered advertisements. To change, see `proxy.py` at `ACCEPT_UNREGISTERED_ADVERTISEMENTS`
 2) Configure Routers so they can reach the blockchain
-    - You must run: sudo ./bgp_smart_contracts/src/scripts/a20-update-routers-for-bgp.sh
-    - ^ This updates the ix100, ix101, 3_r1, and 3_r4 so all routers can reach the blockchain for validation
+    - You must run: `sudo ./bgp_smart_contracts/src/scripts/a20-update-routers-for-bgp.sh`
+    - ^ This updates the `ix100`, `ix101`, `3_r1`, and `3_r4` so all routers can reach the blockchain for validation
 3) Everything is setup, now you can run a hijack. See next (4)
-4) To hijack 10.199.0.0/24 on a random router, run:
+4) To hijack `10.199.0.0/24` on a random router, run:
     - `sudo ./Random_Hijack 10.199.0.0/24`
     - This will also print out which router we are running the hijack from
 5) To see how many routers accepted the invalid advertisement, run:
     - `sudo ./control_plane 10.199.0.0/24`
 6) Verify Result. With BGP_Chain, we expect to see 
-    - 6 routers WITHOUT the hijacked route (10.199.0.0/24) in their routing tables
-    - 1 router WITH the hijacked route (10.199.0.0/24) in its routing table - This should be whichever router was running the hijack (i.e. 151 or 152, etc)
+    - 6 routers WITHOUT the hijacked route (`10.199.0.0/24`) in their routing tables
+    - 1 router WITH the hijacked route (`10.199.0.0/24`) in its routing table - This should be whichever router was running the hijack (i.e. 151 or 152, etc)
 
 
 ## How to Run (so far)
