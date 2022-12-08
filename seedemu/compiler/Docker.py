@@ -1081,7 +1081,15 @@ class Docker(Compiler):
                 special_commands += '/ganache.sh\n'
                 network_devices.append(node.getAsn())
                 if 101 not in network_devices and 3 in network_devices: # NOTE: this is specific to A20-nano-internet
-                    network_devices.append(101)                    
+                    network_devices.append(101)
+                if 102 not in network_devices and 3 in network_devices: # NOTE: this is specific to A20-nano-internet
+                    network_devices.append(102) 
+                if 103 not in network_devices and 3 in network_devices: # NOTE: this is specific to A20-nano-internet
+                    network_devices.append(103) 
+                if 104 not in network_devices and 3 in network_devices: # NOTE: this is specific to A20-nano-internet
+                    network_devices.append(104) 
+                if 105 not in network_devices and 3 in network_devices: # NOTE: this is specific to A20-nano-internet
+                    network_devices.append(105)                     
                 net_asn=list(set(network_devices))
                 special_commands += '''python3 /bgp_smart_contracts/src/account_script.py '{}' '''.format(net_asn)
 
