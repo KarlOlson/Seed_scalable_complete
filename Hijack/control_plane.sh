@@ -17,7 +17,7 @@ for router in ${Routers[@]}; do
     AS_info+=( "${string%%"$delimiter"*}" )
     string=${string#*"$delimiter"}
   done
-  echo "############### ${AS_info[0]} ###############" 
+  echo "############### ${AS_info[0]} ############### ${router}" 
   if [[ $(docker exec $router /bin/bash -c "birdc show route all | grep $hijacked_prefix") ]]; then
     echo "Hijacked route found in ${AS_info[0]}"
     let hijacked_route++
