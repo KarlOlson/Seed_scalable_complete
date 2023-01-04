@@ -38,13 +38,13 @@
 # Update: 1/3/23 - Experiment for B00-mini-internet
 1) Very similar to above (A20-nano-internet). Must accept unregistered advertisements!!!
 2) Run `sudo ./bgp_smart_contracts/src/scripts/b00-update-routers-for-bgp`
-  - updates all router configs as set by Karl. See router configs in `bgp_smart_contracts/configs/b00-mini-internet/`
+    - updates all router configs as set by Karl. See router configs in `bgp_smart_contracts/configs/b00-mini-internet/`
 3) We run into an error after we deploy b00 and set the update router configs.
-  - some of the routers fail to reach the blockchain, so they cannot validate an advertisement
-  - The router will send a request to the blockchain, but the request will timeout. This causes a BGP desync and the routers will disconnect
-  - I don't know why this happens. I can't remember but I think Karl said that without BGP Chain, aka just vanilla bgp with the router updates, everything works fine and all the routers can reach the blockchain router. BUT, as soon as we add in BGP chain stuff, things fail on some routers.
-  - This is weird because this was the same error I saw deploying with A20 initially but as soon as I added in the `ACCEPT_UNREGISTERED_ADVERTISEMENTS` flag and set to true everything worked. But for some reason that is not solving everything here. 
-  - This is the last thing I got too. Did not have time to investigate deeper. - Greg
+    - some of the routers fail to reach the blockchain, so they cannot validate an advertisement
+    - The router will send a request to the blockchain, but the request will timeout. This causes a BGP desync and the routers will disconnect
+    - I don't know why this happens. I can't remember but I think Karl said that without BGP Chain, aka just vanilla bgp with the router updates, everything works fine and all the routers can reach the blockchain router. BUT, as soon as we add in BGP chain stuff, things fail on some routers.
+    - This is weird because this was the same error I saw deploying with A20 initially but as soon as I added in the `ACCEPT_UNREGISTERED_ADVERTISEMENTS` flag and set to true everything worked. But for some reason that is not solving everything here. 
+    - This is the last thing I got too. Did not have time to investigate deeper. - Greg
 
 
 ## How to Run (so far)
