@@ -106,6 +106,11 @@ You can use SEED to build a terraform project and then deploy that to google clo
 ### Terraform Issues:
 1. If you deploy the terraform to the same project more than once, there is an error about some conflicting network information already existing for swarm deployment. I cannot figure out what this is (after deleting everything within the project). I have to start a new project (and create a new credential) each time I deploy. Not a big issue as you will likely clear out a project anyway to prevent recurring billing charges....but can be annoying if doing quick tests. Have yet to ID/solve conflict.
 
+###Docker Cleanup:
+1. Sometimes you need to cleanup old containers/networks. The following commands will help:
+`docker-compose down` stops any running containers. Must run from directory of docker-compose file.
+`docker image prune -a` removes all inactive containers.
+`docker network prune` removes inactive networks
 
 ## License
 
