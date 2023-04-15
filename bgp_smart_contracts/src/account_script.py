@@ -10,7 +10,7 @@ from Utils.Utils import *
 from ipaddress import IPv4Address
 import os, sys
 
-hijack_account = 199 #enter ASN# of the dummy hijack account. prefix: 10.199.0.0/24, ASN: 199 
+hijack_account = 255 #enter ASN# of the dummy hijack account. prefix: 10.199.0.0/24, ASN: 199 
 
 #def cycle (contract_file):
 def cycle():
