@@ -18,6 +18,7 @@ from ipaddress import IPv4Address
 import os, sys
 import datetime
 import subprocess
+import time
 
 ACCEPT_UNREGISTERED_ADVERTISEMENTS = True # set to False to remove all advertisements that are not registered
 
@@ -163,6 +164,8 @@ def remove_invalid_nlri_from_packet(m_pkt, nlri, update):
 
 #Chain check function. Needs to be updated with smart contract calls.  
 def bgpchain_validate(segment, tx_sender):
+    start_time = time.time_ns() // 1_000_000
+    print("chain start time:"+str(start_time))
     inIP = IPv4Address(segment[1])
     inSubnet = int(segment[2])
     inASN = int(segment[0])
@@ -174,6 +177,8 @@ def bgpchain_validate(segment, tx_sender):
     
     validationResult = tx_sender.tx.sc_validatePrefix(int(inIP), inSubnet, inASN)
     print(str(validationResult))
+    duration=(time.time_ns() // 1_000_000) - start_time
+    print ("chain Duration was: "+str(duration)+" ms.")
     return validationResult
 
 # def bgpchain_validate_path(path):
@@ -214,7 +219,8 @@ if __name__=='__main__':
 
     # instantiate the netfilter queue
     nfqueue = NetfilterQueue()
- 
+    start_time1 = time.time_ns() // 1_000_000
+    print("proxy start time:"+str(start_time1))
     try:
         nfqueue.bind(QUEUE_NUM, pkt_in)
         #nfqueue.bind(2, pkt_in)
@@ -224,3 +230,5 @@ if __name__=='__main__':
         # remove that rule we just inserted, going back to normal.
         os.system("iptables --flush")
         nfqueue.unbind()
+    duration1=(time.time_ns() // 1_000_000) - start_time1
+    print ("proxy duration was: "+str(duration1)+" ms.")
